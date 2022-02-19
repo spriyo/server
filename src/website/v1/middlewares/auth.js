@@ -1,20 +1,24 @@
-const jwt = require("jsonwebtoken");
-const User = require("../../../models/user");
+const { recoverPersonalSignature } = require("@metamask/eth-sig-util");
+const { User } = require("../../../models/user");
 
 async function auth(req, res, next) {
 	try {
-		const token = req.header("Authorization").replace("Bearer ", "");
-		const decoded = jwt.decode(token, process.env.JWT_SECRET);
+		const sign = req.header("Authorization").replace("Bearer ", "");
+		const userAddress = recoverPersonalSignature({
+			data: "SIGN",
+			signature: sign,
+		});
+
 		const user = await User.findOne({
-			_id: decoded._id,
-			"tokens.token": token,
+			user_address: userAddress,
+			"tokens.expireAt": { $gt: new Date() },
+			"tokens.sign": sign,
 		});
 
 		if (!user) {
 			throw new Error();
 		}
 		req.user = user;
-		req.token = token;
 		next();
 	} catch (e) {
 		res.status(404).send({ message: "Please authenticate" });
