@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
-const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 
 const UserSchema = new mongoose.Schema(
 	{
@@ -62,18 +62,18 @@ const UserSchema = new mongoose.Schema(
 		},
 		tokens: [
 			{
-				sign: {
+				token: {
 					type: String,
-					required: true,
-				},
-				expireAt: {
-					type: Date,
 					required: true,
 				},
 				createdAt: {
 					type: Date,
 					required: true,
 					default: new Date(),
+				},
+				nonce: {
+					type: Number,
+					required: true,
 				},
 			},
 		],
@@ -93,17 +93,24 @@ UserSchema.methods.toJSON = function () {
 };
 
 // Instance methods
-UserSchema.methods.generateToken = async function (sign) {
+UserSchema.methods.generateToken = async function () {
 	const user = this;
-	const currentTime = new Date();
 
-	// Adding 24hrs expire
-	currentTime.setDate(currentTime.getDate() + 1);
-	const expireAt = currentTime;
+	// Signing JWT
+	const nonce = Math.floor(Math.random() * 10000000);
+	const payload = {
+		_id: user._id,
+		wallet_address: user.address,
+		nonce,
+	};
+	const token = jwt.sign(payload, process.env.JWT_SECRET, {
+		// Adding 24hrs expire
+		expiresIn: "1 days",
+	});
 
-	user.tokens = user.tokens.concat({ sign, expireAt });
+	user.tokens = user.tokens.concat({ token, nonce });
 	await user.save();
-	return sign;
+	return token;
 };
 
 const User = new mongoose.model("User", UserSchema);

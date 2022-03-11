@@ -9,8 +9,11 @@ async function createUser(req, res) {
 			signature: req.body.sign,
 		});
 		user.address = userAddress;
-		const sign = await user.generateToken(req.body.sign);
-		res.status(201).send({ user, sign });
+		if (!user.username) {
+			user.username = user.address;
+		}
+		const token = await user.generateToken(req.body.sign);
+		res.status(201).send({ user, token });
 	} catch (error) {
 		res.send({ message: error.message });
 	}
