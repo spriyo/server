@@ -1,6 +1,7 @@
 const mongoose = require("mongoose");
 const validator = require("validator");
 const jwt = require("jsonwebtoken");
+const { OtpNonce } = require("./otpnonce");
 
 const UserSchema = new mongoose.Schema(
 	{
@@ -46,15 +47,6 @@ const UserSchema = new mongoose.Schema(
 				}
 			},
 		},
-		lastLocation: {
-			type: {
-				type: String,
-				enum: ["Point"],
-			},
-			coordinates: {
-				type: [Number],
-			},
-		},
 		disabled: {
 			type: Boolean,
 			required: true,
@@ -93,23 +85,31 @@ UserSchema.methods.toJSON = function () {
 };
 
 // Instance methods
-UserSchema.methods.generateToken = async function () {
+UserSchema.methods.generateToken = async function (nonce) {
 	const user = this;
 
+	const otpNonce = await OtpNonce.findOne({
+		nonce,
+		address: user.address,
+		expireAt: { $gt: new Date() },
+	});
+	if (!otpNonce) throw new Error("Invalid or expired signature.");
+
 	// Signing JWT
-	const nonce = Math.floor(Math.random() * 10000000);
 	const payload = {
 		_id: user._id,
 		wallet_address: user.address,
-		nonce,
+		nonce: otpNonce.nonce,
 	};
 	const token = jwt.sign(payload, process.env.JWT_SECRET, {
-		// Adding 24hrs expire
 		expiresIn: "1 days",
 	});
 
 	user.tokens = user.tokens.concat({ token, nonce });
 	await user.save();
+
+	// Delete OTPNonces if everyting passes
+	await OtpNonce.deleteMany({ address: user.address });
 	return token;
 };
 

@@ -51,6 +51,7 @@ app.use(express.json());
 // Bootstrap routes
 const routes = require("./config/routes");
 routes.websiteV1(app);
+routes.common(app);
 
 app.get("/", (req, res) => {
 	res.send({ message: "🍑🍆💦" });
