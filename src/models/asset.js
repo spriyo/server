@@ -57,6 +57,18 @@ const AssetSchema = new mongoose.Schema(
 	}
 );
 
+AssetSchema.virtual("auctions", {
+	ref: "Auction",
+	localField: "_id",
+	foreignField: "asset_id",
+});
+
+AssetSchema.virtual("offers", {
+	ref: "Offer",
+	localField: "_id",
+	foreignField: "asset_id",
+});
+
 const Asset = mongoose.model("Asset", AssetSchema);
 
 module.exports = { Asset };

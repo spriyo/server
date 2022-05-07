@@ -30,7 +30,7 @@ app.use(function (req, res, next) {
 	var allowedDomains = [
 		"https://admin.cronmarket.com",
 		"https://chat.cronmarket.com",
-		"http://localhost:3000",
+		"http://localhost:3001",
 	];
 	var origin = req.headers.origin;
 	if (allowedDomains.indexOf(origin) > -1) {
