@@ -8,19 +8,20 @@ createAsset = async (req, res) => {
 		asset.created_by = req.user._id;
 
 		// Check if medias were sent through request
-		let photoList = [];
-		if (req.files.length > 0) {
-			req.files.forEach((file) => {
-				photoList.push({
-					asset_id: asset._id,
-					path: file.location,
-					assetPath: file.key,
-					originalName: file.originalname,
-					mimetype: file.mimetype,
-					size: file.size,
-				});
-			});
+		if (!req.files) {
+			throw new Error("Invalid response received, no files received!");
 		}
+		let photoList = [];
+		req.files.forEach((file) => {
+			photoList.push({
+				asset_id: asset._id,
+				path: file.location,
+				assetPath: file.key,
+				originalName: file.originalname,
+				mimetype: file.mimetype,
+				size: file.size,
+			});
+		});
 
 		const medias = await AssetMedia.insertMany(photoList);
 		medias.forEach((photo) => asset.medias.push(photo._id));

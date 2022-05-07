@@ -12,7 +12,7 @@ const AssetSchema = new mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
-		title: {
+		name: {
 			type: String,
 			required: true,
 			default: "",
@@ -22,6 +22,18 @@ const AssetSchema = new mongoose.Schema(
 			required: true,
 			default: "",
 		},
+		chainId: {
+			type: String,
+			required: true,
+		},
+		contractAddress: {
+			type: String,
+			required: true,
+		},
+		itemId: {
+			type: Number,
+			required: true,
+		},
 		medias: [
 			{
 				type: mongoose.Types.ObjectId,
@@ -29,11 +41,6 @@ const AssetSchema = new mongoose.Schema(
 				required: true,
 			},
 		],
-		price: {
-			type: Number,
-			required: true,
-			default: 0,
-		},
 		views: {
 			type: Number,
 			required: true,

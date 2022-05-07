@@ -13,7 +13,7 @@ const {
 router.post(
 	"/assets",
 	auth,
-	upload.assetImage.array("asset", { maxCount: 5 }),
+	upload.assetImage.array("asset", { maxCount: 1 }),
 	createAsset,
 	(err, req, res, next) => {
 		res.status(400).send({ error: err.message });

@@ -42,7 +42,7 @@ async function signin(req, res) {
 
 		res.status(201).send({ user, token });
 	} catch (error) {
-		res.send({ message: error.message });
+		res.status(500).send({ message: error.message });
 	}
 }
 
