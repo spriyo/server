@@ -1,7 +1,7 @@
 const { Asset } = require("../../../models/asset");
 const { AssetMedia } = require("../../../models/assetMedia");
 
-createAsset = async (req, res) => {
+const createAsset = async (req, res) => {
 	try {
 		const asset = new Asset(req.body);
 		asset.owner = req.user._id;
@@ -32,7 +32,7 @@ createAsset = async (req, res) => {
 	}
 };
 
-readAsset = async (req, res) => {
+const readAsset = async (req, res) => {
 	try {
 		const asset = await Asset.findById(req.params.id).populate("medias").lean();
 		if (!asset) {
@@ -50,7 +50,20 @@ readAsset = async (req, res) => {
 	}
 };
 
-readAssetsUser = async (req, res) => {
+const readAssets = async (req, res) => {
+	try {
+		const assets = await Asset.find()
+			.limit(parseInt(req.query.limit ?? 0))
+			.skip(parseInt(req.query.skip ?? 0))
+			.populate("medias owner created_by events");
+
+		res.send(assets);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+const readAssetsUser = async (req, res) => {
 	try {
 		const assets = await Asset.find({ owner_id: req.params.id })
 			.limit(parseInt(req.query.limit))
@@ -125,5 +138,6 @@ readAssetsUser = async (req, res) => {
 module.exports = {
 	createAsset,
 	readAsset,
+	readAssets,
 	readAssetsUser,
 };

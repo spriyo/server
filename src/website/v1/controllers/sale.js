@@ -67,10 +67,14 @@ const buySale = async (req, res) => {
 				.status(404)
 				.send({ message: "Invalid id or sale might have been canceled/sold." });
 
+		const asset = await Asset.findById(sale.asset_id);
+		asset.owner = req.user._id;
+
 		sale.buyer = req.user._id;
 		sale.status = "sold";
 		sale.sold = true;
 		await sale.save();
+		await asset.save();
 		res.send(sale);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
