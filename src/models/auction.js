@@ -12,8 +12,9 @@ const AuctionSchema = new mongoose.Schema(
 			required: true,
 		},
 		reserve_price: {
-			type: Number,
+			type: String,
 			required: true,
+			default: "0",
 		},
 		expireAt: {
 			type: Date,
