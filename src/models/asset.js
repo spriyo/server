@@ -26,11 +26,11 @@ const AssetSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 		},
-		contractAddress: {
+		contract_address: {
 			type: String,
 			required: true,
 		},
-		itemId: {
+		item_id: {
 			type: Number,
 			required: true,
 		},
@@ -50,6 +50,15 @@ const AssetSchema = new mongoose.Schema(
 			type: Boolean,
 			required: true,
 			default: false,
+		},
+		metadata_url: {
+			type: String,
+			required: true,
+		},
+		metadata: {
+			type: JSON,
+			required: true,
+			default: {},
 		},
 	},
 	{
@@ -74,6 +83,9 @@ AssetSchema.virtual("events", {
 	localField: "_id",
 	foreignField: "asset_id",
 });
+
+AssetSchema.set("toObject", { virtuals: true });
+AssetSchema.set("toJSON", { virtuals: true });
 
 const Asset = mongoose.model("Asset", AssetSchema);
 
