@@ -13,10 +13,10 @@ router.post("/auctions", auth, createAuction);
 
 router.post("/auctions/bid", auth, createBid);
 
-router.patch("/auctions/:id/update", auth, updateAuction);
+router.patch("/auctions/update/:id", auth, updateAuction);
 
-router.patch("/auctions/:id/cancel", auth, cancelAuction);
+router.patch("/auctions/cancel/:id", auth, cancelAuction);
 
-router.patch("/auctions/:id/settle", auth, settleAuction);
+router.patch("/auctions/settle/:id", auth, settleAuction);
 
 module.exports = router;
