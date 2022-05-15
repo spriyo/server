@@ -6,7 +6,7 @@ const createSale = async (req, res) => {
 		const sale = new Sale(req.body);
 		sale.seller = req.user._id;
 
-		const isSaleExist = await Sale.find({
+		const isSaleExist = await Sale.findOne({
 			asset_id: sale.asset_id,
 			sold: false,
 		});
@@ -47,8 +47,61 @@ const cancelSale = async (req, res) => {
 				.status(401)
 				.send({ message: "Only seller can cancel the sale!" });
 
+		const asset = await Asset.findById(sale.asset_id);
 		sale.status = "canceled";
 		await sale.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: sale.seller,
+			event_type: "sale_canceled",
+			data: sale,
+		});
+		await event.save();
+		// Event End
+
+		res.send(sale);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+const updateSale = async (req, res) => {
+	try {
+		const sale = await Sale.findOne({
+			_id: req.params.id,
+			status: "onsale",
+			sold: false,
+		});
+		if (!sale)
+			return res
+				.status(404)
+				.send({ message: "Invalid id or sale might have been canceled/sold." });
+
+		if (!sale.seller.equals(req.user._id))
+			return res
+				.status(401)
+				.send({ message: "Only seller can update the sale!" });
+
+		const asset = await Asset.findById(sale.asset_id);
+		sale.amount = req.body.amount;
+		await sale.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: sale.seller,
+			event_type: "sale_update_price",
+			data: sale,
+		});
+		await event.save();
+		// Event End
+
 		res.send(sale);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
@@ -81,4 +134,4 @@ const buySale = async (req, res) => {
 	}
 };
 
-module.exports = { createSale, cancelSale, buySale };
+module.exports = { createSale, updateSale, cancelSale, buySale };
