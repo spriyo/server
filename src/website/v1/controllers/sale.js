@@ -1,5 +1,6 @@
 const { Sale } = require("../../../models/sale");
 const { Asset } = require("../../../models/asset");
+const { Event } = require("../../../models/event");
 
 const createSale = async (req, res) => {
 	try {
@@ -24,6 +25,19 @@ const createSale = async (req, res) => {
 				.send({ message: "Only the asset owner can list it for sale!" });
 
 		await sale.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: sale.seller,
+			event_type: "sale_created",
+			data: sale,
+		});
+		await event.save();
+		// Event End
+
 		res.status(201).send(sale);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
@@ -128,6 +142,19 @@ const buySale = async (req, res) => {
 		sale.sold = true;
 		await sale.save();
 		await asset.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: sale.seller,
+			event_type: "sale_accepted",
+			data: sale,
+		});
+		await event.save();
+		// Event End
+
 		res.send(sale);
 	} catch (error) {
 		res.status(500).send({ message: error.message });

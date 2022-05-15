@@ -1,5 +1,6 @@
 const { Asset } = require("../../../models/asset");
 const { AssetMedia } = require("../../../models/assetMedia");
+const { Event } = require("../../../models/event");
 
 const createAsset = async (req, res) => {
 	try {
@@ -26,6 +27,19 @@ const createAsset = async (req, res) => {
 		const medias = await AssetMedia.insertMany(photoList);
 		medias.forEach((photo) => asset.medias.push(photo._id));
 		await asset.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: asset.owner,
+			event_type: "mint",
+			data: asset,
+		});
+		await event.save();
+		// Event End
+
 		res.status(201).send(asset);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
@@ -34,14 +48,28 @@ const createAsset = async (req, res) => {
 
 const readAsset = async (req, res) => {
 	try {
-		const asset = await Asset.findById(req.params.id).populate("medias").lean();
+		const asset = await Asset.findById(req.params.id)
+			.populate("medias owner", "-tokens")
+			.populate({
+				path: "events",
+				populate: {
+					path: "user_id",
+					select: "-tokens",
+				},
+				options: {
+					sort: {
+						createdAt: -1,
+					},
+				},
+			})
+			.lean();
 		if (!asset) {
 			return res
 				.status(404)
 				.send({ message: "Asset was not found with the given data" });
 		}
 		const id = asset._id;
-		delete asset._id;
+		// delete asset._id;
 		asset.views++;
 		await Asset.updateOne({ _id: id }, asset);
 		res.send(asset);
@@ -55,7 +83,11 @@ const readAssets = async (req, res) => {
 		const assets = await Asset.find()
 			.limit(parseInt(req.query.limit ?? 0))
 			.skip(parseInt(req.query.skip ?? 0))
-			.populate("medias owner created_by events");
+			.populate({
+				path: "events",
+				options: { limit: 3, sort: { createdAt: -1 } },
+			})
+			.populate("medias owner created_by");
 
 		res.send(assets);
 	} catch (error) {
@@ -65,10 +97,14 @@ const readAssets = async (req, res) => {
 
 const readAssetsUser = async (req, res) => {
 	try {
-		const assets = await Asset.find({ owner_id: req.params.id })
-			.limit(parseInt(req.query.limit))
-			.skip(parseInt(req.query.skip))
-			.populate("medias")
+		const assets = await Asset.find({ owner: req.params.id })
+			.limit(parseInt(req.query.limit || 0))
+			.skip(parseInt(req.query.skip || 0))
+			.populate({
+				path: "events",
+				options: { limit: 3, sort: { createdAt: -1 } },
+			})
+			.populate("medias owner created_by")
 			.exec();
 
 		res.send(assets);
@@ -76,64 +112,6 @@ const readAssetsUser = async (req, res) => {
 		res.status(500).send({ message: error.message });
 	}
 };
-
-// updateItem = async (req, res) => {
-// 	let updates = Object.keys(req.body);
-// 	const availableUpdates = [
-// 		"title",
-// 		"description",
-// 		"unit",
-// 		"duration",
-// 		"status",
-// 		"address_id",
-// 		"location",
-// 		"refundable_deposit",
-// 		"price",
-// 		"category",
-// 	];
-// 	const isValid = updates.every((update) => availableUpdates.includes(update));
-// 	if (!isValid) {
-// 		return res.status(400).send({ message: "Invalid response received" });
-// 	}
-
-// 	try {
-// 		const item = await Item.findById(req.params.id);
-// 		if (!item) {
-// 			return res
-// 				.status(404)
-// 				.send({ message: "Item was not found with the given data" });
-// 		}
-// 		// Cross User Update
-// 		if (!req.user._id.equals(item.user_id)) {
-// 			return res
-// 				.status(401)
-// 				.send({ message: "Unauthorized cross user update" });
-// 		}
-// 		updates.forEach((update) => (item[update] = req.body[update]));
-// 		await item.save();
-// 		res.send(item);
-// 	} catch (e) {
-// 		res.status(500).send({ message: e.message });
-// 	}
-// };
-
-// deleteItem = async (req, res) => {
-// 	try {
-// 		const item = await Item.findById(req.params.id);
-// 		if (!item) {
-// 			return res
-// 				.status(404)
-// 				.send({ message: "Item was not found with the given data" });
-// 		}
-// 		if (!item.user_id.equals(req.user._id)) {
-// 			return res.status(401).send({ message: "_id mismatch with user" });
-// 		}
-// 		await item.remove();
-// 		res.send(item);
-// 	} catch (error) {
-// 		res.status(500).send({ message: error.message });
-// 	}
-// };
 
 module.exports = {
 	createAsset,
