@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const SaleSchema = new mongoose.Schema(
 	{
+		sale_id: {
+			type: Number,
+			required: true,
+		},
 		asset_id: {
 			type: mongoose.Types.ObjectId,
 			ref: "Asset",

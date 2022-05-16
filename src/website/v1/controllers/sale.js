@@ -148,7 +148,7 @@ const buySale = async (req, res) => {
 			asset_id: asset._id,
 			contract_address: asset.contract_address,
 			item_id: asset.item_id,
-			user_id: sale.seller,
+			user_id: req.user._id,
 			event_type: "sale_accepted",
 			data: sale,
 		});
