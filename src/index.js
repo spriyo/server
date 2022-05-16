@@ -7,7 +7,18 @@ const http = require("http").createServer(app);
 // Environmental variables(env) config
 // If .env file is not found in location,
 // no errors or exceptions will be thrown
-require("dotenv").config({ path: path.join(__dirname, "../envconfig/.env") });
+console.log(process.env.NODE_ENV);
+if (process.env.NODE_ENV === "staging") {
+	require("dotenv").config({
+		path: path.join(__dirname, "../envconfig/.staging.env"),
+	});
+} else if (process.env.NODE_ENV === "production") {
+	require("dotenv").config({
+		path: path.join(__dirname, "../envconfig/.production.env"),
+	});
+} else {
+	require("dotenv").config({ path: path.join(__dirname, "../envconfig/.env") });
+}
 
 // Database
 require("./database/mongoose");
@@ -27,11 +38,7 @@ app.use(express.static(assetsDirectoryPath));
 
 // CORS
 app.use(function (req, res, next) {
-	var allowedDomains = [
-		"https://admin.cronmarket.com",
-		"https://chat.cronmarket.com",
-		"http://localhost:3001",
-	];
+	var allowedDomains = process.env.ALLOWED_DOMAINS.split(" ");
 	var origin = req.headers.origin;
 	if (allowedDomains.indexOf(origin) > -1) {
 		res.setHeader("Access-Control-Allow-Origin", origin);

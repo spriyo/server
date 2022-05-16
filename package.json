@@ -4,8 +4,9 @@
 	"description": "",
 	"main": "index.js",
 	"scripts": {
-		"dev": "nodemon src/index.js",
-		"start": "node src/index.js"
+		"dev": "set NODE_ENV=development&& nodemon src/index.js",
+		"staging": "set NODE_ENV=staging&& nodemon src/index.js",
+		"start": "set NODE_ENV=production&& node src/index.js"
 	},
 	"author": "",
 	"license": "ISC",
