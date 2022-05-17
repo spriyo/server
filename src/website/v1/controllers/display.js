@@ -12,7 +12,15 @@ const getActiveSales = async (req, res) => {
 			.populate("seller buyer")
 			.populate({
 				path: "asset_id",
-				populate: "medias owner created_by",
+				populate: {
+					path: "medias owner created_by events",
+					options: {
+						limit: 1,
+						sort: {
+							createdAt: -1,
+						},
+					},
+				},
 			});
 
 		res.send(sales);

@@ -5,8 +5,8 @@ const auth = require("../middlewares/auth");
 
 router.post("/offers", auth, makeOffer);
 
-router.post("/offers/accept/:id", auth, acceptOffer);
+router.patch("/offers/accept/:id", auth, acceptOffer);
 
-router.post("/offers/cancel/:id", auth, cancelOffer);
+router.patch("/offers/cancel/:id", auth, cancelOffer);
 
 module.exports = router;
