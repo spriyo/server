@@ -6,6 +6,7 @@ const comment = require("./comment");
 const offer = require("./offer");
 const auction = require("./auction");
 const sale = require("./sale");
+const tag = require("./tag");
 
 router.use(display);
 router.use(user);
@@ -14,5 +15,6 @@ router.use(comment);
 router.use(offer);
 router.use(auction);
 router.use(sale);
+router.use(tag);
 
 module.exports = { websiteRouter: router };
