@@ -63,6 +63,7 @@ const cancelSale = async (req, res) => {
 
 		const asset = await Asset.findById(sale.asset_id);
 		sale.status = "canceled";
+		sale.sold = true;
 		await sale.save();
 
 		// Event Start
