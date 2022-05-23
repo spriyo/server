@@ -17,7 +17,7 @@ const EventSchema = new mongoose.Schema(
 				"auction_settled",
 				"offer_created",
 				"offer_accepted",
-				"offer_declined",
+				"offer_canceled",
 				"sale_created",
 				"sale_update_price",
 				"sale_accepted",

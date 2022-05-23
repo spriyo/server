@@ -87,7 +87,8 @@ const readAssets = async (req, res) => {
 				path: "events",
 				options: { limit: 3, sort: { createdAt: -1 } },
 			})
-			.populate("medias owner created_by");
+			.populate("medias owner created_by")
+			.sort({ createdAt: -1 });
 
 		res.send(assets);
 	} catch (error) {
