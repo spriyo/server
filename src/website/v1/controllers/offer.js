@@ -51,7 +51,7 @@ const acceptOffer = async (req, res) => {
 
 		offer.sold = true;
 		const asset = await Asset.findById(offer.asset_id);
-		asset.owner = req.user._id;
+		asset.owner = offer.offer_from;
 		offer.offer_status = "accepted";
 		await offer.save();
 		await asset.save();
@@ -61,7 +61,7 @@ const acceptOffer = async (req, res) => {
 			asset_id: offer.asset_id,
 			contract_address: offer.contract_address,
 			item_id: offer.item_id,
-			user_id: offer.offer_from,
+			user_id: req.user._id,
 			event_type: "offer_accepted",
 			data: offer,
 		});
@@ -91,8 +91,8 @@ const cancelOffer = async (req, res) => {
 			asset_id: offer.asset_id,
 			contract_address: offer.contract_address,
 			item_id: offer.item_id,
-			user_id: offer.offer_from,
-			event_type: "offer_declined",
+			user_id: req.user._id,
+			event_type: "offer_canceled",
 			data: offer,
 		});
 		await event.save();

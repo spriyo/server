@@ -12,16 +12,26 @@ const getActiveSales = async (req, res) => {
 			.populate("seller buyer")
 			.populate({
 				path: "asset_id",
-				populate: {
-					path: "medias owner created_by events",
-					options: {
-						limit: 1,
-						sort: {
-							createdAt: -1,
+				populate: [
+					{
+						path: "medias owner created_by",
+					},
+					{
+						path: "events",
+						options: {
+							limit: 2,
+							sort: {
+								createdAt: -1,
+							},
+						},
+						populate: {
+							path: "user_id",
+							select: "-tokens",
 						},
 					},
-				},
-			});
+				],
+			})
+			.sort({ createdAt: -1 });
 
 		res.send(sales);
 	} catch (error) {
@@ -62,7 +72,39 @@ const getTopCreators = async (req, res) => {
 	}
 };
 
+const search = async (req, res) => {
+	try {
+		let query = req.query.query;
+		if (!query) query = "";
+		const assets = await Asset.find({ name: { $regex: query, $options: "i" } })
+			.populate({
+				path: "medias owner created_by",
+			})
+			.populate({
+				path: "events",
+				options: {
+					limit: 2,
+					sort: {
+						createdAt: -1,
+					},
+				},
+				populate: {
+					path: "user_id",
+					select: "-tokens",
+				},
+			})
+			.sort({ createdAt: req.query.createdAt })
+			.limit(parseInt(req.query.limit || 10))
+			.skip(parseInt(req.query.skip || 0));
+
+		res.send(assets);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
 module.exports = {
 	getActiveSales,
 	getTopCreators,
+	search,
 };
