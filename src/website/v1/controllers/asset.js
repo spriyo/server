@@ -80,7 +80,12 @@ const readAsset = async (req, res) => {
 
 const readAssets = async (req, res) => {
 	try {
-		const assets = await Asset.find()
+		let queryOptions = {};
+		let chainId = req.query.chainId;
+		if (chainId) {
+			queryOptions.chainId = chainId;
+		}
+		const assets = await Asset.find(queryOptions)
 			.limit(parseInt(req.query.limit ?? 0))
 			.skip(parseInt(req.query.skip ?? 0))
 			.populate({
@@ -98,7 +103,14 @@ const readAssets = async (req, res) => {
 
 const readAssetsUser = async (req, res) => {
 	try {
-		const assets = await Asset.find({ owner: req.params.id })
+		let queryOptions = {
+			owner: req.params.id,
+		};
+		let chainId = req.query.chainId;
+		if (chainId) {
+			queryOptions.chainId = chainId;
+		}
+		const assets = await Asset.find(queryOptions)
 			.limit(parseInt(req.query.limit || 0))
 			.skip(parseInt(req.query.skip || 0))
 			.populate({
