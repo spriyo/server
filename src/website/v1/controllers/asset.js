@@ -90,6 +90,10 @@ const readAssets = async (req, res) => {
 			.skip(parseInt(req.query.skip ?? 0))
 			.populate({
 				path: "events",
+				populate: {
+					path: "user_id",
+					select: "-tokens",
+				},
 				options: { limit: 3, sort: { createdAt: -1 } },
 			})
 			.populate("medias owner created_by")
