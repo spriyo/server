@@ -80,14 +80,24 @@ const readAsset = async (req, res) => {
 
 const readAssets = async (req, res) => {
 	try {
-		const assets = await Asset.find()
+		let queryOptions = {};
+		let chainId = req.query.chainId;
+		if (chainId) {
+			queryOptions.chainId = chainId;
+		}
+		const assets = await Asset.find(queryOptions)
 			.limit(parseInt(req.query.limit ?? 0))
 			.skip(parseInt(req.query.skip ?? 0))
 			.populate({
 				path: "events",
+				populate: {
+					path: "user_id",
+					select: "-tokens",
+				},
 				options: { limit: 3, sort: { createdAt: -1 } },
 			})
-			.populate("medias owner created_by");
+			.populate("medias owner created_by")
+			.sort({ createdAt: -1 });
 
 		res.send(assets);
 	} catch (error) {
@@ -97,7 +107,14 @@ const readAssets = async (req, res) => {
 
 const readAssetsUser = async (req, res) => {
 	try {
-		const assets = await Asset.find({ owner: req.params.id })
+		let queryOptions = {
+			owner: req.params.id,
+		};
+		let chainId = req.query.chainId;
+		if (chainId) {
+			queryOptions.chainId = chainId;
+		}
+		const assets = await Asset.find(queryOptions)
 			.limit(parseInt(req.query.limit || 0))
 			.skip(parseInt(req.query.skip || 0))
 			.populate({

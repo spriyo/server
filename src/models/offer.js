@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 
 const OfferSchema = new mongoose.Schema({
+	offer_id: {
+		type: Number,
+		required: true,
+	},
 	asset_id: {
 		type: mongoose.Types.ObjectId,
 		ref: "Asset",
