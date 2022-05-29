@@ -33,7 +33,7 @@ const upload = {
 	}),
 	assetImage: multer({
 		limits: {
-			fileSize: 5000000,
+			fileSize: 20000000,
 		},
 		fileFilter(req, file, cb) {
 			if (!file.originalname.match(/\.(jpg|jpeg|png|mp4)$/)) {
