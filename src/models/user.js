@@ -25,7 +25,7 @@ const UserSchema = new mongoose.Schema(
 		displayImage: {
 			type: String,
 			default:
-				"https://rendamarket.s3.ap-south-1.amazonaws.com/images/default-profile-icon.jpg",
+				"https://spriyo.s3.ap-south-1.amazonaws.com/images/default-profile-icon.png",
 			required: true,
 		},
 		phone: {
