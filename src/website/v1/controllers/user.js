@@ -1,25 +1,6 @@
 const { User } = require("../../../models/user");
 const { recoverPersonalSignature } = require("@metamask/eth-sig-util");
-
-// async function createUser(req, res) {
-// 	try {
-// 		const { sign, nonce } = req.body;
-// 		const recoveredAddress = recoverPersonalSignature({
-// 			data: "Please approve this message \n \nNonce:\n" + nonce,
-// 			signature: sign,
-// 		});
-
-// 		const user = new User(req.body);
-// 		user.address = recoveredAddress;
-// 		if (!user.username) {
-// 			user.username = user.address;
-// 		}
-// 		const token = await user.generateToken(nonce);
-// 		res.status(201).send({ user, token });
-// 	} catch (error) {
-// 		res.send({ message: error.message });
-// 	}
-// }
+const s3 = require("../../../utils/s3");
 
 async function signin(req, res) {
 	try {
@@ -54,24 +35,46 @@ async function getUser(req, res) {
 	}
 }
 
-// async function loginUser(req, res) {
-// 	try {
-// 		const userAddress = recoverPersonalSignature({
-// 			data: "SIGN",
-// 			signature: req.body.sign,
-// 		});
+const updateUser = async (req, res) => {
+	let updates = Object.keys(req.body);
+	const availableUpdates = ["username", "displayName", "disabled"];
+	const isValid = updates.every((update) => availableUpdates.includes(update));
+	if (!isValid) {
+		return res.status(400).send({ message: "Invalid response received" });
+	}
 
-// 		const user = await User.findOne({ address: userAddress });
+	try {
+		const user = req.user;
+		updates.forEach((update) => (user[update] = req.body[update]));
+		await user.save();
+		res.send(user);
+	} catch (e) {
+		res.status(500).send({ message: e.message });
+	}
+};
 
-// 		if (!user) {
-// 			return res.status(404).send({ message: "Invalid signature." });
-// 		}
+const updateAvatar = async function (req, res) {
+	try {
+		let oldurl;
+		if (!req.file) {
+			return res.send({ message: "add image" });
+		}
+		if (req.file) {
+			oldurl = "assets/" + req.user.displayImage.split("/assets/")[1];
+			req.user.displayImage = req.file.location;
+		}
+		await req.user.save();
+		if (oldurl.includes("default-profile-icon.jpg")) return res.send(req.user);
+		// Remove old photo
+		s3.deleteObject(
+			{ Key: oldurl, Bucket: process.env.AWS_BUCKET },
+			function (err, data) {
+				res.send(req.user);
+			}
+		);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
 
-// 		const sign = await user.generateToken(req.body.sign);
-// 		res.status(201).send({ user, sign });
-// 	} catch (error) {
-// 		res.send({ message: error.message });
-// 	}
-// }
-
-module.exports = { signin, getUser };
+module.exports = { signin, getUser, updateAvatar, updateUser };
