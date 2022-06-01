@@ -22,6 +22,7 @@ const EventSchema = new mongoose.Schema(
 				"sale_update_price",
 				"sale_accepted",
 				"sale_canceled",
+				"imported",
 			],
 			required: true,
 		},

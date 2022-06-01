@@ -10,7 +10,6 @@ const AssetSchema = new mongoose.Schema(
 		created_by: {
 			type: mongoose.Types.ObjectId,
 			ref: "User",
-			required: true,
 		},
 		name: {
 			type: String,
@@ -59,6 +58,13 @@ const AssetSchema = new mongoose.Schema(
 			type: JSON,
 			required: true,
 			default: {},
+		},
+		imported: {
+			type: Boolean,
+			default: false,
+		},
+		image: {
+			type: String,
 		},
 	},
 	{
