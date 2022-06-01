@@ -1,6 +1,7 @@
 const { Asset } = require("../../../models/asset");
 const { AssetMedia } = require("../../../models/assetMedia");
 const { Event } = require("../../../models/event");
+const { default: axios } = require("axios");
 
 const createAsset = async (req, res) => {
 	try {
@@ -35,6 +36,50 @@ const createAsset = async (req, res) => {
 			item_id: asset.item_id,
 			user_id: asset.owner,
 			event_type: "mint",
+			data: asset,
+		});
+		await event.save();
+		// Event End
+
+		res.status(201).send(asset);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+const importAsset = async (req, res) => {
+	try {
+		const asset = new Asset(req.body);
+		const assetExist = await Asset.findOne({
+			chainId: asset.chainId,
+			contract_address: new RegExp("^" + asset.contract_address + "$", "i"),
+			item_id: asset.item_id,
+		});
+		if (assetExist)
+			return res.status(409).send({ message: "Asset already exist!" });
+
+		const response = await axios.get(asset.metadata_url);
+		if (response.status !== 200) {
+			res.status(400).send({ message: "unable to fetch metadata." });
+		}
+		const metadata = response.data;
+
+		asset.imported = true;
+		asset.description = metadata.description;
+		asset.name = metadata.name;
+		asset.image = `https://ipfs.io/ipfs/${metadata.hash}`;
+		asset.metadata = metadata;
+		asset.owner = req.user._id;
+
+		await asset.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: asset.owner,
+			event_type: "imported",
 			data: asset,
 		});
 		await event.save();
@@ -132,6 +177,7 @@ const readAssetsUser = async (req, res) => {
 
 module.exports = {
 	createAsset,
+	importAsset,
 	readAsset,
 	readAssets,
 	readAssetsUser,
