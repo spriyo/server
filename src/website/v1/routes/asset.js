@@ -7,6 +7,7 @@ const {
 	createAsset,
 	readAsset,
 	readAssetsUser,
+	importAsset,
 	readAssets,
 } = require("../controllers/asset");
 
@@ -20,6 +21,9 @@ router.post(
 		res.status(400).send({ error: err.message });
 	}
 );
+
+// Import Item
+router.post("/assets/import", auth, importAsset);
 
 // Read Item
 router.get("/assets/:id", readAsset);
