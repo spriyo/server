@@ -1,3 +1,4 @@
+const { adminRouter } = require("../admin/routes");
 const { commonRouter } = require("../common/allRoute");
 const { websiteRouter } = require("../website/v1/routes/allroute");
 
@@ -7,6 +8,9 @@ const routes = {
 	},
 	common: (app) => {
 		app.use("/common", commonRouter);
+	},
+	admin: (app) => {
+		app.use("/admin", adminRouter);
 	},
 };
 

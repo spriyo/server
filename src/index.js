@@ -16,6 +16,10 @@ if (process.env.NODE_ENV === "staging") {
 	require("dotenv").config({
 		path: path.join(__dirname, "../envconfig/.production.env"),
 	});
+} else if (process.env.NODE_ENV === "development-remote") {
+	require("dotenv").config({
+		path: path.join(__dirname, "../envconfig/.dev.env"),
+	});
 } else {
 	require("dotenv").config({ path: path.join(__dirname, "../envconfig/.env") });
 }
@@ -59,6 +63,7 @@ app.use(express.json());
 const routes = require("./config/routes");
 routes.websiteV1(app);
 routes.common(app);
+routes.admin(app);
 
 app.get("/", (req, res) => {
 	res.send({ message: "🍑🍆💦" });
