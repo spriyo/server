@@ -7,6 +7,10 @@ const AssetSchema = new mongoose.Schema(
 			ref: "User",
 			required: true,
 		},
+		owner_address: {
+			type: String,
+			trim: true,
+		},
 		created_by: {
 			type: mongoose.Types.ObjectId,
 			ref: "User",
