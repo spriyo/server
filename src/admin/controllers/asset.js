@@ -10,6 +10,7 @@ const web3 = new Web3(
 
 const importAsset = async (req, res) => {
 	try {
+		let skip = req.body.skip || 0;
 		const contract_address = req.body.contract_address;
 		const contract = new web3.eth.Contract(
 			nftJSONInterface.abi,
@@ -21,7 +22,7 @@ const importAsset = async (req, res) => {
 			return res.status(500).send({ message: "Please enter import count." });
 
 		let totalAdded = 0;
-		for (var i = 0; i < importCount; i++) {
+		for (var i = 0 + skip; i < importCount + skip; i++) {
 			const tokenByIndex = await contract.methods.tokenByIndex(i).call();
 			const tokenURI = await contract.methods.tokenURI(tokenByIndex).call();
 
@@ -40,12 +41,12 @@ const importAsset = async (req, res) => {
 			if (
 				!assetExist &&
 				metadata.description &&
-				metadata.name &&
+				(metadata.name || metadata.Name) && // name and Name - GodNft-Prome
 				metadata.image
 			) {
 				asset.imported = true;
 				asset.description = metadata.description;
-				asset.name = metadata.name;
+				asset.name = metadata.name || metadata.Name;
 				asset.image = metadata.image;
 				asset.metadata = metadata;
 				asset.metadata_url = tokenURI;
