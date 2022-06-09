@@ -171,26 +171,126 @@ const search = async (req, res) => {
 		if (chainId) {
 			queryOptions.chainId = chainId;
 		}
-		const assets = await Asset.find(queryOptions)
-			.populate({
-				path: "medias owner created_by",
-			})
-			.populate({
-				path: "events",
-				options: {
-					limit: 2,
-					sort: {
-						createdAt: -1,
+		const assets = await Asset.aggregate([
+			{
+				$match: queryOptions,
+			},
+			{
+				$lookup: {
+					from: "events",
+					as: "events",
+					let: { asset_id: "$_id" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$asset_id", "$$asset_id"] },
+							},
+						},
+						{
+							$lookup: {
+								from: "users",
+								as: "user_id",
+								let: { user_id: "$user_id" },
+								pipeline: [
+									{
+										$match: {
+											$expr: { $eq: ["$_id", "$$user_id"] },
+										},
+									},
+									{ $project: { tokens: 0 } },
+								],
+							},
+						},
+						{ $limit: 2 },
+						{ $sort: { createdAt: -1 } },
+						{
+							$unwind: { path: "$user_id" },
+						},
+					],
+				},
+			},
+			{
+				$lookup: {
+					from: "assetmedias",
+					as: "medias",
+					let: { asset_id: "$_id" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$asset_id", "$$asset_id"] },
+							},
+						},
+					],
+				},
+			},
+			{
+				$lookup: {
+					from: "users",
+					as: "owner",
+					let: { owner_id: "$owner" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$_id", "$$owner_id"] },
+							},
+						},
+						{ $project: { tokens: 0 } },
+					],
+				},
+			},
+			{
+				$lookup: {
+					from: "users",
+					as: "created_by",
+					let: { created_by: "$created_by" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$_id", "$$created_by"] },
+							},
+						},
+						{ $project: { tokens: 0 } },
+					],
+				},
+			},
+			{
+				$lookup: {
+					from: "likes",
+					as: "likes",
+					let: { asset_id: "$_id" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$asset_id", "$$asset_id"] },
+								user_id: req.user ? req.user._id : "",
+							},
+						},
+					],
+				},
+			},
+			{
+				$addFields: {
+					liked: {
+						$toBool: {
+							$size: "$likes",
+						},
 					},
 				},
-				populate: {
-					path: "user_id",
-					select: "-tokens",
+			},
+			{
+				$project: {
+					likes: 0,
 				},
-			})
-			.sort({ createdAt: req.query.createdAt })
-			.limit(parseInt(req.query.limit || 10))
-			.skip(parseInt(req.query.skip || 0));
+			},
+			{
+				$unwind: { path: "$owner" },
+			},
+			{
+				$unwind: { path: "$created_by" },
+			},
+			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
+			{ $skip: parseInt(req.query.skip ?? 0) },
+		]);
 
 		res.send(assets);
 	} catch (error) {
