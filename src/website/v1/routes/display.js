@@ -5,11 +5,12 @@ const {
 	getTopCreators,
 	search,
 } = require("../controllers/display");
+const getUser = require("../middlewares/getUser");
 
 router.get("/display/activesales", getActiveSales);
 
 router.get("/display/topcreators", getTopCreators);
 
-router.get("/display/search", search);
+router.get("/display/search", getUser, search);
 
 module.exports = router;

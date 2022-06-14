@@ -8,7 +8,6 @@ const {
 	readAsset,
 	readAssetsUser,
 	importAsset,
-	readAssets,
 } = require("../controllers/asset");
 
 // Create Item
@@ -27,9 +26,6 @@ router.post("/assets/import", auth, importAsset);
 
 // Read Item
 router.get("/assets/:id", readAsset);
-
-// Read Items
-router.get("/assets", readAssets);
 
 // Read assets(user)
 router.get("/assets/user/:id", readAssetsUser);
