@@ -283,10 +283,10 @@ const search = async (req, res) => {
 				},
 			},
 			{
-				$unwind: { path: "$owner" },
+				$unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
 			},
 			{
-				$unwind: { path: "$created_by" },
+				$unwind: { path: "$created_by", preserveNullAndEmptyArrays: true },
 			},
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
 			{ $skip: parseInt(req.query.skip ?? 0) },
