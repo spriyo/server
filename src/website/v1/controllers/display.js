@@ -288,8 +288,9 @@ const search = async (req, res) => {
 			{
 				$unwind: { path: "$created_by", preserveNullAndEmptyArrays: true },
 			},
+			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
+			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
-			{ $skip: parseInt(req.query.skip ?? 0) },
 		]);
 
 		res.send(assets);
