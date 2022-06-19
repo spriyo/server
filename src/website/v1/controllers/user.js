@@ -77,4 +77,15 @@ const updateAvatar = async function (req, res) {
 	}
 };
 
-module.exports = { signin, getUser, updateAvatar, updateUser };
+const getUserById = async function (req, res) {
+	try {
+		const user = await User.findById(req.params.id);
+		if (!user)
+			return res.status(401).send({ message: "No user found with this id!" });
+		res.send(user);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+module.exports = { signin, getUser, getUserById, updateAvatar, updateUser };
