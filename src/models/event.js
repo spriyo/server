@@ -23,6 +23,7 @@ const EventSchema = new mongoose.Schema(
 				"sale_accepted",
 				"sale_canceled",
 				"imported",
+				"transfer",
 			],
 			required: true,
 		},

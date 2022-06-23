@@ -1,4 +1,5 @@
 const { Asset } = require("../../../models/asset");
+const { User } = require("../../../models/user");
 const { AssetMedia } = require("../../../models/assetMedia");
 const { Event } = require("../../../models/event");
 const { default: axios } = require("axios");
@@ -148,9 +149,58 @@ const readAssetsUser = async (req, res) => {
 	}
 };
 
+const transferAsset = async (req, res) => {
+	try {
+		const assetData = req.body;
+		const asset = await Asset.findOne({
+			chainId: assetData.chainId,
+			contract_address: new RegExp("^" + assetData.contract_address + "$", "i"),
+			item_id: assetData.item_id,
+		});
+		if (!asset)
+			return res
+				.status(409)
+				.send({ message: "Asset not found with given details!" });
+
+		const userExist = await User.findOne({
+			address: req.body.userId,
+		});
+		if (userExist) {
+			asset.owner = userExist;
+		} else {
+			const owner = new User({
+				displayName: "Unnamed",
+				username: req.body.userId,
+				address: req.body.userId,
+			});
+			await owner.save();
+			asset.owner = owner._id;
+		}
+
+		await asset.save();
+
+		// Event Start
+		const event = new Event({
+			asset_id: asset._id,
+			contract_address: asset.contract_address,
+			item_id: asset.item_id,
+			user_id: req.user._id,
+			event_type: "transfer",
+			data: asset,
+		});
+		await event.save();
+		// Event End
+
+		res.status(201).send(asset);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
 module.exports = {
 	createAsset,
 	importAsset,
 	readAsset,
 	readAssetsUser,
+	transferAsset,
 };
