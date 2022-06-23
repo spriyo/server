@@ -201,8 +201,8 @@ const search = async (req, res) => {
 								],
 							},
 						},
-						{ $limit: 2 },
 						{ $sort: { createdAt: -1 } },
+						{ $limit: 2 },
 						{
 							$unwind: { path: "$user_id" },
 						},
