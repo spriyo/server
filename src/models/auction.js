@@ -2,6 +2,10 @@ const mongoose = require("mongoose");
 
 const AuctionSchema = new mongoose.Schema(
 	{
+		auction_id: {
+			type: Number,
+			required: true,
+		},
 		asset_id: {
 			type: mongoose.Types.ObjectId,
 			ref: "Asset",
