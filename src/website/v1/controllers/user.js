@@ -79,7 +79,16 @@ const updateAvatar = async function (req, res) {
 
 const getUserById = async function (req, res) {
 	try {
-		const user = await User.findById(req.params.id);
+		const regex = /^0x/gm;
+		const match = req.params.id.match(regex);
+		let user;
+		if (match && match.length > 0) {
+			user = await User.findOne({
+				address: { $regex: new RegExp("^" + req.params.id + "$", "i") },
+			});
+		} else {
+			user = await User.findById(req.params.id);
+		}
 		if (!user)
 			return res.status(401).send({ message: "No user found with this id!" });
 		res.send(user);
