@@ -1,6 +1,7 @@
 const { User } = require("../../../models/user");
 const { recoverPersonalSignature } = require("@metamask/eth-sig-util");
 const s3 = require("../../../utils/s3");
+const validator = require("validator");
 
 async function signin(req, res) {
 	try {
@@ -77,17 +78,20 @@ const updateAvatar = async function (req, res) {
 	}
 };
 
-const getUserById = async function (req, res) {
+const getUserByAddressOrUsername = async function (req, res) {
 	try {
 		const regex = /^0x/gm;
-		const match = req.params.id.match(regex);
+		const username = req.params.username;
+		const match = username.match(regex);
 		let user;
 		if (match && match.length > 0) {
 			user = await User.findOne({
-				address: { $regex: new RegExp("^" + req.params.id + "$", "i") },
+				address: { $regex: new RegExp("^" + username + "$", "i") },
 			});
+		} else if (validator.isMongoId(username)) {
+			user = await User.findById(username);
 		} else {
-			user = await User.findById(req.params.id);
+			user = await User.findOne({ username });
 		}
 		if (!user)
 			return res.status(401).send({ message: "No user found with this id!" });
@@ -97,4 +101,10 @@ const getUserById = async function (req, res) {
 	}
 };
 
-module.exports = { signin, getUser, getUserById, updateAvatar, updateUser };
+module.exports = {
+	signin,
+	getUser,
+	getUserByAddressOrUsername,
+	updateAvatar,
+	updateUser,
+};
