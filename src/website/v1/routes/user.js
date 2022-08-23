@@ -4,7 +4,7 @@ const {
 	signin,
 	updateAvatar,
 	updateUser,
-	getUserById,
+	getUserByAddressOrUsername,
 } = require("../controllers/user");
 const auth = require("../middlewares/auth");
 const { upload } = require("../../../utils/multer");
@@ -13,7 +13,7 @@ router.post("/user/signin", signin);
 
 router.get("/user", auth, getUser);
 
-router.get("/user/:id", getUserById);
+router.get("/user/:username", getUserByAddressOrUsername);
 
 // Update User
 router.patch("/user", auth, updateUser);

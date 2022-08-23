@@ -10,6 +10,11 @@ const UserSchema = new mongoose.Schema(
 			trim: true,
 			required: true,
 			unique: true,
+			validate(value) {
+				if (!validator.matches(value.toString(), "^[a-zA-Z0-9_.-]*$")) {
+					throw new Error("username not valid");
+				}
+			},
 		},
 		displayName: {
 			type: String,
@@ -21,6 +26,11 @@ const UserSchema = new mongoose.Schema(
 			trim: true,
 			required: true,
 			unique: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("invalid address");
+				}
+			},
 		},
 		displayImage: {
 			type: String,
