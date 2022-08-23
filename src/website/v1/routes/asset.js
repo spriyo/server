@@ -28,10 +28,10 @@ router.post("/assets/import", auth, importAsset);
 // Transfer Asset
 router.post("/assets/transfer", auth, transferAsset);
 
-// Read Item
-router.get("/assets/:id", readAsset);
-
 // Read assets(user)
 router.get("/assets/user/:id", readAssetsUser);
+
+// Read Item
+router.get("/assets/:contract_address/:token_id", readAsset);
 
 module.exports = router;

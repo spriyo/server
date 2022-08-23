@@ -94,7 +94,10 @@ const importAsset = async (req, res) => {
 
 const readAsset = async (req, res) => {
 	try {
-		const asset = await Asset.findById(req.params.id)
+		const asset = await Asset.findOne({
+			contract_address: req.params.contract_address,
+			item_id: req.params.token_id,
+		})
 			.populate("medias owner", "-tokens")
 			.populate({
 				path: "events",
