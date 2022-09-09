@@ -9,6 +9,7 @@ const sale = require("./sale");
 const tag = require("./tag");
 const like = require("./like");
 const follower = require("./follower");
+const emailtoken = require('./emailtoken')
 
 router.use(display);
 router.use(user);
@@ -20,5 +21,6 @@ router.use(sale);
 router.use(tag);
 router.use(like);
 router.use(follower);
+router.use(emailtoken)
 
 module.exports = { websiteRouter: router };
