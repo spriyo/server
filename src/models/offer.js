@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const OfferSchema = new mongoose.Schema({
 	offer_id: {
@@ -7,7 +8,7 @@ const OfferSchema = new mongoose.Schema({
 	},
 	asset_id: {
 		type: mongoose.Types.ObjectId,
-		ref: "Asset",
+		ref: "NFT",
 		required: true,
 	},
 	item_id: {
@@ -24,9 +25,14 @@ const OfferSchema = new mongoose.Schema({
 		required: true,
 	},
 	offer_from: {
-		type: mongoose.Types.ObjectId,
-		ref: "User",
+		type: String,
 		required: true,
+		trim: true,
+		validate(value) {
+			if (!validator.isEthereumAddress(value.toString())) {
+				throw new Error("Invalid nft contract address");
+			}
+		},
 	},
 	contract_address: {
 		type: String,

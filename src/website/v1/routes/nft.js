@@ -2,7 +2,7 @@ const router = require("express").Router();
 
 const auth = require("../middlewares/auth");
 
-const { createAsset } = require("../controllers/nft");
+const { createAsset, readAsset, transferAsset } = require("../controllers/nft");
 const { upload } = require("../../../utils/multer");
 
 // Create Item
@@ -15,5 +15,11 @@ router.post(
 		res.status(400).send({ error: err.message });
 	}
 );
+
+// Read Item
+router.get("/nfts/:contract_address/:token_id", readAsset);
+
+// Transfer Asset
+router.post("/nfts/transfer", auth, transferAsset);
 
 module.exports = router;

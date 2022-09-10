@@ -1,5 +1,5 @@
 const { Sale } = require("../../../models/sale");
-const { Asset } = require("../../../models/asset");
+const { NFT } = require("../../../models/nft");
 const { Event } = require("../../../models/event");
 
 const createSale = async (req, res) => {
@@ -16,21 +16,21 @@ const createSale = async (req, res) => {
 				.status(404)
 				.send({ message: "This asset is already listed for sale!" });
 
-		const asset = await Asset.findById(req.body.asset_id);
-		if (!asset) return res.send({ message: "No asset found with given id!" });
+		const nft = await NFT.findById(req.body.asset_id);
+		if (!nft) return res.send({ message: "No nft found with given id!" });
 
-		if (!sale.seller.equals(asset.owner))
+		if (req.user.address !== nft.owner)
 			return res
 				.status(401)
-				.send({ message: "Only the asset owner can list it for sale!" });
+				.send({ message: "Only the nft owner can list it for sale!" });
 
 		await sale.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
-			asset_id: asset._id,
-			contract_address: asset.contract_address,
-			item_id: asset.item_id,
+			asset_id: nft._id,
+			contract_address: nft.contract_address,
+			item_id: nft.token_id,
 			user_id: sale.seller,
 			event_type: "sale_created",
 			data: sale,
@@ -61,16 +61,16 @@ const cancelSale = async (req, res) => {
 				.status(401)
 				.send({ message: "Only seller can cancel the sale!" });
 
-		const asset = await Asset.findById(sale.asset_id);
+		const nft = await NFT.findById(sale.asset_id);
 		sale.status = "canceled";
 		sale.sold = true;
 		await sale.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
-			asset_id: asset._id,
-			contract_address: asset.contract_address,
-			item_id: asset.item_id,
+			asset_id: nft._id,
+			contract_address: nft.contract_address,
+			item_id: nft.token_id,
 			user_id: sale.seller,
 			event_type: "sale_canceled",
 			data: sale,
@@ -101,15 +101,15 @@ const updateSale = async (req, res) => {
 				.status(401)
 				.send({ message: "Only seller can update the sale!" });
 
-		const asset = await Asset.findById(sale.asset_id);
+		const nft = await NFT.findById(sale.asset_id);
 		sale.amount = req.body.amount;
 		await sale.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
-			asset_id: asset._id,
-			contract_address: asset.contract_address,
-			item_id: asset.item_id,
+			asset_id: nft._id,
+			contract_address: nft.contract_address,
+			item_id: nft.token_id,
 			user_id: sale.seller,
 			event_type: "sale_update_price",
 			data: sale,
@@ -135,20 +135,20 @@ const buySale = async (req, res) => {
 				.status(404)
 				.send({ message: "Invalid id or sale might have been canceled/sold." });
 
-		const asset = await Asset.findById(sale.asset_id);
-		asset.owner = req.user._id;
+		const nft = await NFT.findById(sale.asset_id);
+		nft.owner = req.user.address;
 
 		sale.buyer = req.user._id;
 		sale.status = "sold";
 		sale.sold = true;
 		await sale.save();
-		await asset.save();
+		await nft.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
-			asset_id: asset._id,
-			contract_address: asset.contract_address,
-			item_id: asset.item_id,
+			asset_id: nft._id,
+			contract_address: nft.contract_address,
+			item_id: nft.token_id,
 			user_id: req.user._id,
 			event_type: "sale_accepted",
 			data: sale,

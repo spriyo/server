@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const AuctionSchema = new mongoose.Schema(
 	{
@@ -35,9 +36,14 @@ const AuctionSchema = new mongoose.Schema(
 			default: null,
 		},
 		seller: {
-			type: mongoose.Types.ObjectId,
-			ref: "User",
+			type: String,
 			required: true,
+			trim: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft owner address");
+				}
+			},
 		},
 		contract_address: {
 			type: String,
