@@ -1,7 +1,7 @@
-const { Asset } = require("../../../models/asset");
 const { Auction } = require("../../../models/auction");
 const { Bid } = require("../../../models/bid");
 const { Event } = require("../../../models/event");
+const { NFT } = require("../../../models/nft");
 
 const createAuction = async (req, res) => {
 	try {
@@ -17,24 +17,28 @@ const createAuction = async (req, res) => {
 
 		const auction = new Auction(req.body);
 
-		const asset = await Asset.findOne({ _id: auction.asset_id, type: "open" });
-		if (!asset) return res.status(404).send({ message: "Invalid asset id!" });
+		const nft = await NFT.findOne({ _id: auction.asset_id });
+		if (!nft) return res.status(404).send({ message: "Invalid nft id!" });
+		if (nft.owner !== req.user.address)
+			return res
+				.status(401)
+				.send({ message: "only owner can create auction!" });
 
 		var expireAt = new Date();
 		expireAt.setDate(expireAt.getDate() + 1);
 		auction.expireAt = expireAt;
-		auction.seller = asset.owner;
+		auction.seller = nft.owner;
 		auction.reserve_price = req.body.reserve_price;
-		auction.contract_address = asset.contract_address;
-		auction.item_id = asset.item_id;
+		auction.contract_address = nft.contract_address;
+		auction.item_id = nft.token_id;
 		await auction.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: auction.asset_id,
 			contract_address: auction.contract_address,
 			item_id: auction.item_id,
-			user_id: auction.seller,
+			user_id: req.user._id,
 			event_type: "auction_create",
 			data: auction,
 		});
@@ -64,7 +68,7 @@ const createBid = async (req, res) => {
 		await bid.save();
 		await auction.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: auction.asset_id,
 			contract_address: auction.contract_address,
@@ -86,7 +90,7 @@ const updateAuction = async (req, res) => {
 	try {
 		const auction = await Auction.findOne({
 			_id: req.params.id,
-			seller: req.user._id,
+			seller: req.user.address,
 			completed: false,
 		}).sort({ createdAt: -1 });
 
@@ -103,12 +107,12 @@ const updateAuction = async (req, res) => {
 		auction.reserve_price = req.body.reserve_price;
 		await auction.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: auction.asset_id,
 			contract_address: auction.contract_address,
 			item_id: auction.item_id,
-			user_id: auction.seller,
+			user_id: req.user._id,
 			event_type: "auction_update_price",
 			data: auction,
 		});
@@ -125,7 +129,7 @@ const cancelAuction = async (req, res) => {
 	try {
 		const auction = await Auction.findOne({
 			_id: req.params.id,
-			seller: req.user._id,
+			seller: req.user.address,
 			completed: false,
 		}).sort({ createdAt: -1 });
 
@@ -142,12 +146,12 @@ const cancelAuction = async (req, res) => {
 		auction.status = "canceled";
 		await auction.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: auction.asset_id,
 			contract_address: auction.contract_address,
 			item_id: auction.item_id,
-			user_id: auction.seller,
+			user_id: req.user._id,
 			event_type: "auction_canceled",
 			data: auction,
 		});
@@ -188,7 +192,7 @@ const settleAuction = async (req, res) => {
 			});
 
 		if (
-			!auction.seller.equals(req.user._id) ||
+			auction.seller !== req.user.address ||
 			!auction.bids[0].user_id.equals(req.user._id)
 		) {
 			return res.status(401).send({
@@ -198,12 +202,12 @@ const settleAuction = async (req, res) => {
 		auction.status = "closed";
 		await auction.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: auction.asset_id,
 			contract_address: auction.contract_address,
 			item_id: auction.item_id,
-			user_id: auction.seller,
+			user_id: req.user._id,
 			event_type: "auction_settled",
 			data: auction,
 		});

@@ -94,7 +94,7 @@ const getUserByAddressOrUsername = async function (req, res) {
 			user = await User.findOne({ username });
 		}
 		if (!user)
-			return res.status(401).send({ message: "No user found with this id!" });
+			return res.status(404).send({ message: "No user found with this id!" });
 		res.send(user);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
