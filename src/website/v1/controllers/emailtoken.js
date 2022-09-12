@@ -74,7 +74,7 @@ exports.registerEmail = async (req, res) => {
         }
 
         let emailTokenData = await emailTokenModel.findOne({
-            user_id: userData._id
+            user_id: req.user._id
         });
         
         // user must try again after 5 minutes once mail was sent
