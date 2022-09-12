@@ -303,12 +303,12 @@ const search = async (req, res) => {
 const searchNfts = async (req, res) => {
 	try {
 		let query = req.query.query || "";
-		let chainId = req.query.chainId;
+		let chain_id = req.query.chain_id;
 		let queryOptions = {
 			name: { $regex: query, $options: "i" },
 		};
-		if (chainId) {
-			queryOptions.chainId = chainId;
+		if (chain_id) {
+			queryOptions.chain_id = chain_id;
 		}
 		const assets = await NFT.aggregate([
 			{
