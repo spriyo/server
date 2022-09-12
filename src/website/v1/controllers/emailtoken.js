@@ -15,7 +15,7 @@ AWS.config.update({
 exports.sendMail = async (to_address, emailTokenId, token) => {
     try {
         const ses = new AWS.SES();
-        const url = `${process.env.APP_URL}/verify-email?sign=${token}`
+        const url = `${process.env.APP_URL}/website/v1/verify-email?sign=${token}`
         const params = {
             Destination: {
               ToAddresses: [to_address] // Email address/addresses that you want to send your email
