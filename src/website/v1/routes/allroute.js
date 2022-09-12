@@ -10,6 +10,7 @@ const tag = require("./tag");
 const like = require("./like");
 const follower = require("./follower");
 const emailtoken = require('./emailtoken')
+const nft = require("./nft");
 
 router.use(display);
 router.use(user);
@@ -22,5 +23,6 @@ router.use(tag);
 router.use(like);
 router.use(follower);
 router.use(emailtoken)
+router.use(nft);
 
 module.exports = { websiteRouter: router };

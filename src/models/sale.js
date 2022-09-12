@@ -8,7 +8,7 @@ const SaleSchema = new mongoose.Schema(
 		},
 		asset_id: {
 			type: mongoose.Types.ObjectId,
-			ref: "Asset",
+			ref: "NFT",
 			require: true,
 		},
 		amount: {
