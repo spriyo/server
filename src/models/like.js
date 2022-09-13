@@ -4,7 +4,7 @@ const LikeSchema = new mongoose.Schema(
 	{
 		asset_id: {
 			type: mongoose.Types.ObjectId,
-			ref: "Asset",
+			ref: "NFT",
 			required: true,
 		},
 		user_id: {

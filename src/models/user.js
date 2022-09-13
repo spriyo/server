@@ -57,6 +57,9 @@ const UserSchema = new mongoose.Schema(
 				}
 			},
 		},
+		is_email_verified: {
+			type: Boolean
+		},
 		disabled: {
 			type: Boolean,
 			required: true,

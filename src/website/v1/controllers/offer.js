@@ -1,29 +1,29 @@
-const { Asset } = require("../../../models/asset");
 const { Event } = require("../../../models/event");
+const { NFT } = require("../../../models/nft");
 const { Offer } = require("../../../models/offer");
 
 const makeOffer = async (req, res) => {
 	try {
 		const offer = new Offer(req.body);
 
-		const asset = await Asset.findById(req.body.asset_id);
-		if (!asset) return res.send({ message: "No asset found with given id!" });
+		const nft = await NFT.findById(req.body.asset_id);
+		if (!nft) return res.send({ message: "No nft found with given id!" });
 
 		var expireAt = new Date();
 		expireAt.setDate(expireAt.getDate() + 1);
 		offer.expireAt = expireAt;
-		offer.offer_from = req.user._id;
-		offer.contract_address = asset.contract_address;
-		offer.item_id = asset.item_id;
+		offer.offer_from = req.user.address;
+		offer.contract_address = nft.contract_address;
+		offer.item_id = nft.token_id;
 
 		await offer.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: offer.asset_id,
-			contract_address: asset.contract_address,
-			item_id: asset.item_id,
-			user_id: offer.offer_from,
+			contract_address: nft.contract_address,
+			item_id: nft.token_id,
+			user_id: req.user._id,
 			event_type: "offer_created",
 			data: offer,
 		});
@@ -50,13 +50,13 @@ const acceptOffer = async (req, res) => {
 			return res.send({ message: "Offer has been settled already!" });
 
 		offer.sold = true;
-		const asset = await Asset.findById(offer.asset_id);
-		asset.owner = offer.offer_from;
+		const nft = await NFT.findById(offer.asset_id);
+		nft.owner = offer.offer_from;
 		offer.offer_status = "accepted";
 		await offer.save();
-		await asset.save();
+		await nft.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: offer.asset_id,
 			contract_address: offer.contract_address,
@@ -86,7 +86,7 @@ const cancelOffer = async (req, res) => {
 		offer.sold = true;
 		await offer.save();
 
-		// Event Start
+		// {}Event Start
 		const event = new Event({
 			asset_id: offer.asset_id,
 			contract_address: offer.contract_address,
