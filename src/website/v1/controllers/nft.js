@@ -77,7 +77,7 @@ const readAsset = async (req, res) => {
 							},
 						},
 						{ $sort: { createdAt: -1 } },
-						{ $limit: 2 },
+						{ $limit: 10 },
 						{
 							$unwind: { path: "$user_id" },
 						},
