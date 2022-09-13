@@ -6,7 +6,7 @@ const getActiveSales = async (req, res) => {
 	let assetOptions = {};
 	let chainId = req.query.chainId;
 	if (chainId) {
-		assetOptions.chainId = chainId;
+		assetOptions.chain_id = chainId;
 	}
 	try {
 		const sales = await Sale.aggregate([
@@ -18,7 +18,7 @@ const getActiveSales = async (req, res) => {
 			},
 			{
 				$lookup: {
-					from: "assets",
+					from: "nfts",
 					as: "asset_id",
 					let: { asset_id: "$asset_id" },
 					pipeline: [
@@ -30,42 +30,18 @@ const getActiveSales = async (req, res) => {
 						},
 						{
 							$lookup: {
-								from: "assetmedias",
-								as: "medias",
-								let: { asset_id: "$_id" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$asset_id", "$$asset_id"] },
-										},
-									},
-								],
-							},
-						},
-						{
-							$lookup: {
 								from: "users",
 								as: "owner",
 								let: { owner_id: "$owner" },
 								pipeline: [
 									{
 										$match: {
-											$expr: { $eq: ["$_id", "$$owner_id"] },
-										},
-									},
-									{ $project: { tokens: 0 } },
-								],
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								as: "created_by",
-								let: { created_by: "$created_by" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$_id", "$$created_by"] },
+											$expr: {
+												$eq: [
+													{ $toLower: "$address" },
+													{ $toLower: "$$owner_id" },
+												],
+											},
 										},
 									},
 									{ $project: { tokens: 0 } },
@@ -115,9 +91,6 @@ const getActiveSales = async (req, res) => {
 			},
 			{
 				$unwind: { path: "$asset_id.owner" },
-			},
-			{
-				$unwind: { path: "$asset_id.created_by" },
 			},
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
 			{ $skip: parseInt(req.query.skip ?? 0) },
