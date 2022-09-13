@@ -19,7 +19,7 @@ const createAuction = async (req, res) => {
 
 		const nft = await NFT.findOne({ _id: auction.asset_id });
 		if (!nft) return res.status(404).send({ message: "Invalid nft id!" });
-		if (nft.owner !== req.user.address)
+		if (nft.owner.toLowerCase() !== req.user.address.toLowerCase())
 			return res
 				.status(401)
 				.send({ message: "only owner can create auction!" });
@@ -81,6 +81,56 @@ const createBid = async (req, res) => {
 		// Event End
 
 		res.send(bid);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+const getBids = async (req, res) => {
+	try {
+		const bids = await Bid.aggregate([
+			{
+				$match: {
+					$expr: { $eq: ["$user_id", req.user._id] },
+				},
+			},
+			{
+				$lookup: {
+					from: "auctions",
+					as: "auction",
+					let: { auction_id: "$auction_id" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$_id", "$$auction_id"] },
+							},
+						},
+						{
+							$lookup: {
+								from: "nfts",
+								as: "asset",
+								let: { asset_id: "$asset_id" },
+								pipeline: [
+									{
+										$match: {
+											$expr: { $eq: ["$_id", "$$asset_id"] },
+										},
+									},
+								],
+							},
+						},
+						{
+							$unwind: { path: "$asset" },
+						},
+					],
+				},
+			},
+			{
+				$unwind: { path: "$auction" },
+			},
+		]);
+
+		res.send(bids);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
 	}
@@ -223,6 +273,7 @@ const settleAuction = async (req, res) => {
 module.exports = {
 	createAuction,
 	createBid,
+	getBids,
 	updateAuction,
 	cancelAuction,
 	settleAuction,
