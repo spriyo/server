@@ -6,7 +6,6 @@ const { upload } = require("../../../utils/multer");
 const {
 	createAsset,
 	readAsset,
-	readAssetsUser,
 	importAsset,
 	transferAsset,
 } = require("../controllers/asset");
@@ -27,9 +26,6 @@ router.post("/assets/import", auth, importAsset);
 
 // Transfer Asset
 router.post("/assets/transfer", auth, transferAsset);
-
-// Read assets(user)
-router.get("/assets/user/:id", readAssetsUser);
 
 // Read Item
 router.get("/assets/:contract_address/:token_id", readAsset);
