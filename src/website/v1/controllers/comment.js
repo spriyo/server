@@ -1,17 +1,17 @@
 const Comment = require("../../../models/comment");
-const { Asset } = require("../../../models/asset");
+const { NFT } = require("../../../models/nft");
 
 createComment = async (req, res) => {
 	// Add ParentCommentId to comment(reply) to ParentComment
 	try {
 		// Check if Asset Exists
-		const asset = await Asset.findById(req.body.assetId);
-		if (!asset) return res.status(404).send({ message: "Invalid asset _id." });
+		const asset = await NFT.findById(req.body.nft_id);
+		if (!asset) return res.status(404).send({ message: "Invalid nft _id." });
 
 		const comment = new Comment(req.body);
 		comment.userId = req.user._id;
 		await comment.save();
-		await comment.populate("userId").execPopulate();
+		await comment.populate("userId");
 
 		res.status(201).send(comment);
 	} catch (error) {
@@ -22,7 +22,7 @@ createComment = async (req, res) => {
 readComments = async (req, res) => {
 	try {
 		const comments = await Comment.find({
-			assetId: req.params.assetId,
+			nft_id: req.params.nftid,
 			parrentCommentId: { $eq: null },
 		})
 			.sort("-createdAt")
@@ -37,7 +37,9 @@ readComments = async (req, res) => {
 					},
 				},
 			})
-			.populate("userId", "-tokens -password -phone -email");
+			.populate("userId", "-tokens -password -phone -email")
+			.limit(parseInt(req.query.limit || "5"))
+			.skip(parseInt(req.query.skip || "0"));
 
 		res.send(comments);
 	} catch (error) {
