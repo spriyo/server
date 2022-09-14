@@ -13,7 +13,7 @@ const {
 router.post("/comments", auth, createComment);
 
 // Read comments
-router.get("/comments/:assetId", readComments);
+router.get("/comments/:nftid", readComments);
 
 // Read replies
 router.get("/comments/replies/:parrentCommentId", readReplies);
