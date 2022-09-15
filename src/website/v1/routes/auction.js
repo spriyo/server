@@ -7,9 +7,12 @@ const {
 	createBid,
 	cancelAuction,
 	settleAuction,
+	getBids,
 } = require("../controllers/auction");
 
 router.post("/auctions", auth, createAuction);
+
+router.get("/auctions/bids", auth, getBids);
 
 router.post("/auctions/bid", auth, createBid);
 

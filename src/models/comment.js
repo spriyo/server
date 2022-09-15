@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const CommentSchema = new mongoose.Schema(
 	{
-		assetId: {
+		nft_id: {
 			type: mongoose.Types.ObjectId,
-			ref: "Asset",
+			ref: "NFT",
 			required: true,
 		},
 		userId: {

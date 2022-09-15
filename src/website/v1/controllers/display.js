@@ -6,7 +6,7 @@ const getActiveSales = async (req, res) => {
 	let assetOptions = {};
 	let chainId = req.query.chainId;
 	if (chainId) {
-		assetOptions.chainId = chainId;
+		assetOptions.chain_id = chainId;
 	}
 	try {
 		const sales = await Sale.aggregate([
@@ -18,7 +18,7 @@ const getActiveSales = async (req, res) => {
 			},
 			{
 				$lookup: {
-					from: "assets",
+					from: "nfts",
 					as: "asset_id",
 					let: { asset_id: "$asset_id" },
 					pipeline: [
@@ -30,42 +30,18 @@ const getActiveSales = async (req, res) => {
 						},
 						{
 							$lookup: {
-								from: "assetmedias",
-								as: "medias",
-								let: { asset_id: "$_id" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$asset_id", "$$asset_id"] },
-										},
-									},
-								],
-							},
-						},
-						{
-							$lookup: {
 								from: "users",
 								as: "owner",
 								let: { owner_id: "$owner" },
 								pipeline: [
 									{
 										$match: {
-											$expr: { $eq: ["$_id", "$$owner_id"] },
-										},
-									},
-									{ $project: { tokens: 0 } },
-								],
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								as: "created_by",
-								let: { created_by: "$created_by" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$_id", "$$created_by"] },
+											$expr: {
+												$eq: [
+													{ $toLower: "$address" },
+													{ $toLower: "$$owner_id" },
+												],
+											},
 										},
 									},
 									{ $project: { tokens: 0 } },
@@ -116,9 +92,6 @@ const getActiveSales = async (req, res) => {
 			{
 				$unwind: { path: "$asset_id.owner" },
 			},
-			{
-				$unwind: { path: "$asset_id.created_by" },
-			},
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
 			{ $skip: parseInt(req.query.skip ?? 0) },
 		]);
@@ -162,147 +135,10 @@ const getTopCreators = async (req, res) => {
 	}
 };
 
-const search = async (req, res) => {
-	try {
-		let query = req.query.query || "";
-		let chainId = req.query.chainId;
-		let queryOptions = {
-			name: { $regex: query, $options: "i" },
-		};
-		if (chainId) {
-			queryOptions.chainId = chainId;
-		}
-		const assets = await Asset.aggregate([
-			{
-				$match: queryOptions,
-			},
-			{
-				$lookup: {
-					from: "events",
-					as: "events",
-					let: { asset_id: "$_id" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$asset_id", "$$asset_id"] },
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								as: "user_id",
-								let: { user_id: "$user_id" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$_id", "$$user_id"] },
-										},
-									},
-									{ $project: { tokens: 0 } },
-								],
-							},
-						},
-						{ $sort: { createdAt: -1 } },
-						{ $limit: 2 },
-						{
-							$unwind: { path: "$user_id" },
-						},
-					],
-				},
-			},
-			{
-				$lookup: {
-					from: "assetmedias",
-					as: "medias",
-					let: { asset_id: "$_id" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$asset_id", "$$asset_id"] },
-							},
-						},
-					],
-				},
-			},
-			{
-				$lookup: {
-					from: "users",
-					as: "owner",
-					let: { owner_id: "$owner" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$_id", "$$owner_id"] },
-							},
-						},
-						{ $project: { tokens: 0 } },
-					],
-				},
-			},
-			{
-				$lookup: {
-					from: "users",
-					as: "created_by",
-					let: { created_by: "$created_by" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$_id", "$$created_by"] },
-							},
-						},
-						{ $project: { tokens: 0 } },
-					],
-				},
-			},
-			{
-				$lookup: {
-					from: "likes",
-					as: "likes",
-					let: { asset_id: "$_id" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$asset_id", "$$asset_id"] },
-								user_id: req.user ? req.user._id : "",
-							},
-						},
-					],
-				},
-			},
-			{
-				$addFields: {
-					liked: {
-						$toBool: {
-							$size: "$likes",
-						},
-					},
-				},
-			},
-			{
-				$project: {
-					likes: 0,
-				},
-			},
-			{
-				$unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
-			},
-			{
-				$unwind: { path: "$created_by", preserveNullAndEmptyArrays: true },
-			},
-			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
-			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
-			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
-		]);
-
-		res.send(assets);
-	} catch (error) {
-		res.status(500).send({ message: error.message });
-	}
-};
-
 const searchNfts = async (req, res) => {
 	try {
 		let query = req.query.query || "";
+		let owner = req.query.owner;
 		let chain_id = req.query.chain_id;
 		let queryOptions = {
 			name: { $regex: query, $options: "i" },
@@ -312,7 +148,12 @@ const searchNfts = async (req, res) => {
 		}
 		const assets = await NFT.aggregate([
 			{
-				$match: queryOptions,
+				$match: {
+					...queryOptions,
+					$expr: owner
+						? { $eq: [{ $toLower: "$owner" }, { $toLower: owner }] }
+						: {},
+				},
 			},
 			{
 				$lookup: {
@@ -411,6 +252,5 @@ const searchNfts = async (req, res) => {
 module.exports = {
 	getActiveSales,
 	getTopCreators,
-	search,
 	searchNfts,
 };

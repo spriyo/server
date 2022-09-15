@@ -127,39 +127,6 @@ const readAsset = async (req, res) => {
 	}
 };
 
-const readAssetsUser = async (req, res) => {
-	try {
-		const regex = /^0x/gm;
-		const match = req.params.id.match(regex);
-		let queryOptions = {
-			owner: req.params.id,
-		};
-		if (match && match.length > 0) {
-			delete queryOptions.owner;
-			queryOptions.address = {
-				$regex: new RegExp("^" + req.params.id + "$", "i"),
-			};
-		}
-		let chainId = req.query.chainId;
-		if (chainId) {
-			queryOptions.chainId = chainId;
-		}
-		const assets = await Asset.find(queryOptions)
-			.limit(parseInt(req.query.limit || 50))
-			.skip(parseInt(req.query.skip || 0))
-			.populate({
-				path: "events",
-				options: { limit: 3, sort: { createdAt: -1 } },
-			})
-			.populate("medias owner created_by")
-			.exec();
-
-		res.send(assets);
-	} catch (error) {
-		res.status(500).send({ message: error.message });
-	}
-};
-
 const transferAsset = async (req, res) => {
 	try {
 		const assetData = req.body;
@@ -212,6 +179,5 @@ module.exports = {
 	createAsset,
 	importAsset,
 	readAsset,
-	readAssetsUser,
 	transferAsset,
 };

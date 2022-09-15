@@ -19,7 +19,7 @@ const createSale = async (req, res) => {
 		const nft = await NFT.findById(req.body.asset_id);
 		if (!nft) return res.send({ message: "No nft found with given id!" });
 
-		if (req.user.address !== nft.owner)
+		if (req.user.address.toLowerCase() !== nft.owner.toLowerCase())
 			return res
 				.status(401)
 				.send({ message: "Only the nft owner can list it for sale!" });
