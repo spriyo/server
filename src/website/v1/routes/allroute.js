@@ -11,6 +11,7 @@ const like = require("./like");
 const follower = require("./follower");
 const emailtoken = require('./emailtoken')
 const nft = require("./nft");
+const notification = require('./notification')
 
 router.use(display);
 router.use(user);
@@ -24,5 +25,6 @@ router.use(like);
 router.use(follower);
 router.use(emailtoken)
 router.use(nft);
+router.use(notification);
 
 module.exports = { websiteRouter: router };
