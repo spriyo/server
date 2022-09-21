@@ -1,5 +1,5 @@
 const router = require("express").Router();
-const { createNotification, getNotication, updateNotification } = require("../controllers/notification");
+const { createNotification, getNotication, updateNotification, notificationCount } = require("../controllers/notification");
 const { createNotificaitonValidation } = require("../../../validation/notification.validation");
 
 const auth = require("../middlewares/auth");
@@ -9,6 +9,14 @@ const { validationFormat } = require("../../../utils/messageFormat");
 router.get('/notification', auth,  (req, res) => {
     try {
         return getNotication(req, res)
+    } catch (error) {
+        return res.status(500).send(errorMsgFormat(error.message, "notification", 500));
+    }
+})
+
+router.get('/notification/count',  (req, res) => {
+    try {
+        return notificationCount(req, res)
     } catch (error) {
         return res.status(500).send(errorMsgFormat(error.message, "notification", 500));
     }

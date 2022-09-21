@@ -49,3 +49,15 @@ exports.updateNotification = async (req, res) => {
 			.send(errorMsgFormat(error.message, "notification", 500));
 	}
 };
+
+exports.notificationCount = async (req, res) => {
+    try {
+        let count = await notificationSchema.count({user_id: req.user._id, read: false});
+        return res.status(200).send(successFormat({count}, 'notification', 200, 'Notification count.'));
+    } catch (error) {
+        console.log("errro in update notification", error.message, error.stack);
+		return res
+			.status(500)
+			.send(errorMsgFormat(error.message, "notification", 500));
+    }
+}
