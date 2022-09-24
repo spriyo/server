@@ -16,6 +16,7 @@ const getActiveSales = async (req, res) => {
 					sold: false,
 				},
 			},
+			{ $sort: { createdAt: -1 } },
 			{
 				$lookup: {
 					from: "nfts",
@@ -85,7 +86,6 @@ const getActiveSales = async (req, res) => {
 					],
 				},
 			},
-			{ $sort: { createdAt: -1 } },
 			{
 				$unwind: { path: "$asset_id" },
 			},
@@ -155,6 +155,7 @@ const searchNfts = async (req, res) => {
 						: {},
 				},
 			},
+			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
 			{
 				$lookup: {
 					from: "events",
@@ -238,7 +239,6 @@ const searchNfts = async (req, res) => {
 			{
 				$unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
 			},
-			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
 			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
 		]);
