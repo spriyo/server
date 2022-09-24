@@ -21,8 +21,12 @@ async function signin(req, res) {
 				user.username = user.address;
 			}
 		}
-		console.log('called sigin')
-		await createNotificationInter(user._id, 'Login', 'signin success', 'signin');
+		await createNotificationInter(
+			user._id,
+			"Login",
+			"signin success",
+			"signin"
+		);
 		token = await user.generateToken(nonce);
 
 		res.status(201).send({ user, token });

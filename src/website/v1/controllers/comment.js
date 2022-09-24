@@ -1,17 +1,35 @@
 const Comment = require("../../../models/comment");
 const { NFT } = require("../../../models/nft");
+const { User } = require("../../../models/user");
+const { createNotificationInter } = require("./notification");
 
 createComment = async (req, res) => {
 	// Add ParentCommentId to comment(reply) to ParentComment
 	try {
 		// Check if Asset Exists
-		const asset = await NFT.findById(req.body.nft_id);
-		if (!asset) return res.status(404).send({ message: "Invalid nft _id." });
+		const nft = await NFT.findById(req.body.nft_id);
+		if (!nft) return res.status(404).send({ message: "Invalid nft _id." });
 
 		const comment = new Comment(req.body);
 		comment.userId = req.user._id;
 		await comment.save();
 		await comment.populate("userId");
+
+		// Create Notification
+		const currentNftOwner = await User.findOne({
+			address: nft.owner.toLowerCase(),
+		});
+
+		await createNotificationInter(
+			currentNftOwner._id,
+			"New Comment📝",
+			`${req.user.username} commented ${
+				comment.content.length > 40
+					? comment.content.slice(0, 40) + "..."
+					: comment.content
+			} on ${nft.name}`,
+			`/assets/${nft.contract_address}/${nft.token_id}`
+		);
 
 		res.status(201).send(comment);
 	} catch (error) {
