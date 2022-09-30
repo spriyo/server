@@ -1,6 +1,9 @@
 const router = require("express").Router();
 const auth = require("../../v1/middlewares/auth");
-const { createCollection } = require("../controllers/collections");
+const {
+	createCollection,
+	getCollection,
+} = require("../controllers/collections");
 const { upload } = require("../../../utils/multer");
 
 router.post(
@@ -21,5 +24,7 @@ router.post(
 		res.status(400).send({ error: err.message });
 	}
 );
+
+router.get("/collections/:collection_name", getCollection);
 
 module.exports = router;
