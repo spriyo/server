@@ -59,6 +59,34 @@ const upload = {
 			},
 		}),
 	}),
+	collection: multer({
+		limits: {
+			fileSize: 1000000,
+		},
+		fileFilter(req, file, cb) {
+			if (!file.originalname.match(/\.(jpg|jpeg|png|mp4|gif)$/)) {
+				cb(
+					new Error("please upload only jpg,jpeg,png or mp4 file format images")
+				);
+			}
+			cb(undefined, true);
+		},
+		storage: multerS3({
+			s3: s3,
+			bucket: process.env.AWS_BUCKET,
+			contentType: multerS3.AUTO_CONTENT_TYPE,
+			metadata: function (req, file, cb) {
+				cb(null, { fieldName: file.fieldname });
+			},
+			acl: "public-read",
+			key: function (req, file, cb) {
+				let path = `collections/${Date.now()}-${file.fieldname}-${
+					file.originalname
+				}`;
+				cb(null, path);
+			},
+		}),
+	}),
 	bannerImage: multer({
 		limits: {
 			fileSize: 1000000,

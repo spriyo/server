@@ -64,6 +64,7 @@ const routes = require("./config/routes");
 routes.websiteV1(app);
 routes.common(app);
 routes.admin(app);
+routes.websiteV2(app);
 
 app.get("/", (req, res) => {
 	res.send({ message: "🍑🍆💦" });

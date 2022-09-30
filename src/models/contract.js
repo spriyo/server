@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const ContractSchema = new mongoose.Schema(
 	{
@@ -6,6 +7,7 @@ const ContractSchema = new mongoose.Schema(
 			type: String,
 			required: true,
 			trim: true,
+			unique: true,
 			validate(value) {
 				if (!validator.isEthereumAddress(value.toString())) {
 					throw new Error("Invalid contract address");

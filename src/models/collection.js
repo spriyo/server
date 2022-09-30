@@ -30,6 +30,11 @@ const CollectionSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 			unique: true,
+			validate(value) {
+				if (!validator.matches(value.toString(), "^[a-zA-Z0-9_.-]*$")) {
+					throw new Error("unique name not valid");
+				}
+			},
 		},
 		description: {
 			type: String,
