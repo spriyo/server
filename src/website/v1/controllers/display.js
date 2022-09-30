@@ -146,6 +146,14 @@ const searchNfts = async (req, res) => {
 		if (chain_id) {
 			queryOptions.chain_id = chain_id;
 		}
+		let contract = req.query.contract;
+		if (contract) {
+			contract = req.query.contract
+				.split(",")
+				.map((e) => new RegExp(e, "i"));
+			queryOptions.contract_address = { $in: contract };
+		}
+
 		const assets = await NFT.aggregate([
 			{
 				$match: {
