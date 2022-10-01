@@ -75,4 +75,53 @@ const getCollection = async (req, res) => {
 	}
 };
 
-module.exports = { createCollection, getCollection };
+const getCollections = async (req, res) => {
+	try {
+		const user_address = req.query.user_address;
+		let query = req.query.query || "";
+		let queryOptions = {
+			name: { $regex: query, $options: "i" },
+		};
+		if (user_address) {
+			queryOptions.owners = user_address;
+		}
+
+		const collections = await Collection.aggregate([
+			{
+				$match: {
+					...queryOptions,
+				},
+			},
+			{
+				$lookup: {
+					from: "contracts",
+					localField: "contract_address",
+					foreignField: "address",
+					as: "contract",
+				},
+			},
+			{
+				$lookup: {
+					from: "users",
+					localField: "owners",
+					foreignField: "address",
+					as: "owners",
+				},
+			},
+			{
+				$project: {
+					"owners.tokens": 0,
+					"owners.email": 0,
+				},
+			},
+			{
+				$unwind: { path: "$contract", preserveNullAndEmptyArrays: true },
+			},
+		]);
+		res.send(collections);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+module.exports = { createCollection, getCollection, getCollections };
