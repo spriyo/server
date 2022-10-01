@@ -3,6 +3,7 @@ const auth = require("../../v1/middlewares/auth");
 const {
 	createCollection,
 	getCollection,
+	getCollections,
 } = require("../controllers/collections");
 const { upload } = require("../../../utils/multer");
 
@@ -24,6 +25,8 @@ router.post(
 		res.status(400).send({ error: err.message });
 	}
 );
+
+router.get("/collections", getCollections);
 
 router.get("/collections/:collection_name", getCollection);
 
