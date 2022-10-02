@@ -29,23 +29,39 @@ const getActiveSales = async (req, res) => {
 								...assetOptions,
 							},
 						},
+
 						{
 							$lookup: {
-								from: "users",
-								as: "owner",
-								let: { owner_id: "$owner" },
+								from: "owners",
+								as: "owners",
+								let: { id: "$_id" },
 								pipeline: [
 									{
 										$match: {
-											$expr: {
-												$eq: [
-													{ $toLower: "$address" },
-													{ $toLower: "$$owner_id" },
-												],
-											},
+											$expr: { $eq: ["$nft_id", "$$id"] },
 										},
 									},
-									{ $project: { tokens: 0 } },
+									{
+										$lookup: {
+											from: "users",
+											localField: "address",
+											foreignField: "address",
+											as: "user",
+										},
+									},
+									{
+										$unwind: {
+											path: "$user",
+											preserveNullAndEmptyArrays: true,
+										},
+									},
+									{
+										$project: {
+											"user.tokens": 0,
+											"user.email": 0,
+										},
+									},
+									{ $limit: 10 },
 								],
 							},
 						},
@@ -148,9 +164,7 @@ const searchNfts = async (req, res) => {
 		}
 		let contract = req.query.contract;
 		if (contract) {
-			contract = req.query.contract
-				.split(",")
-				.map((e) => new RegExp(e, "i"));
+			contract = req.query.contract.split(",").map((e) => new RegExp(e, "i"));
 			queryOptions.contract_address = { $in: contract };
 		}
 
@@ -200,18 +214,33 @@ const searchNfts = async (req, res) => {
 			},
 			{
 				$lookup: {
-					from: "users",
-					as: "owner",
-					let: { owner: "$owner" },
+					from: "owners",
+					as: "owners",
+					let: { id: "$_id" },
 					pipeline: [
 						{
 							$match: {
-								$expr: {
-									$eq: [{ $toLower: "$address" }, { $toLower: "$$owner" }],
-								},
+								$expr: { $eq: ["$nft_id", "$$id"] },
 							},
 						},
-						{ $project: { tokens: 0 } },
+						{
+							$lookup: {
+								from: "users",
+								localField: "address",
+								foreignField: "address",
+								as: "user",
+							},
+						},
+						{
+							$unwind: { path: "$user", preserveNullAndEmptyArrays: true },
+						},
+						{
+							$project: {
+								"user.tokens": 0,
+								"user.email": 0,
+							},
+						},
+						{ $limit: 10 },
 					],
 				},
 			},

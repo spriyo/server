@@ -28,20 +28,10 @@ const NFTSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 		},
-		owner: {
-			type: String,
-			required: true, // required can be removed in future for ERC1155 standard nfts.
-			trim: true,
-			validate(value) {
-				if (!validator.isEthereumAddress(value.toString())) {
-					throw new Error("Invalid nft owner address");
-				}
-			},
-		},
-		value: {
-			type: String,
+		supply: {
+			type: Number,
 			required: true,
-			default: "1",
+			default: 1,
 		},
 		metadata_url: {
 			type: String,

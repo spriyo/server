@@ -3,6 +3,11 @@ const validator = require("validator");
 
 const OwnerSchema = new mongoose.Schema(
 	{
+		nft_id: {
+			type: mongoose.Types.ObjectId,
+			ref:"NFT",
+			required: true,
+		},
 		address: {
 			type: String,
 			required: true,
@@ -33,10 +38,11 @@ const OwnerSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 		},
-		value: {
-			type: String,
+		supply: {
+			type: Number,
 			required: true,
 			trim: true,
+			default: 1,
 		},
 	},
 	{ timestamps: true }
