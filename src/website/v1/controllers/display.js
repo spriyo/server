@@ -167,14 +167,15 @@ const searchNfts = async (req, res) => {
 			contract = req.query.contract.split(",").map((e) => new RegExp(e, "i"));
 			queryOptions.contract_address = { $in: contract };
 		}
+		let ownerQuery = {};
+		if (owner) {
+			ownerQuery["owners.address"] = new RegExp(owner, "i");
+		}
 
 		const assets = await NFT.aggregate([
 			{
 				$match: {
 					...queryOptions,
-					$expr: owner
-						? { $eq: [{ $toLower: "$owner" }, { $toLower: owner }] }
-						: {},
 				},
 			},
 			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
@@ -242,6 +243,12 @@ const searchNfts = async (req, res) => {
 						},
 						{ $limit: 10 },
 					],
+				},
+			},
+			// This match slows down the query
+			{
+				$match: {
+					...ownerQuery,
 				},
 			},
 			{
