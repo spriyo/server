@@ -174,9 +174,7 @@ const readNFTs = async (req, res) => {
 		}
 		let contract = req.query.contract;
 		if (contract) {
-			contract = req.query.contract
-				.split(",")
-				.map((e) => new RegExp(e, "i"));
+			contract = req.query.contract.split(",").map((e) => new RegExp(e, "i"));
 			queryOptions.contract_address = { $in: contract };
 		}
 
@@ -326,25 +324,28 @@ const transferAsset = async (req, res) => {
 			address: req.user.address,
 			nft_id: nft._id,
 		});
-		const ownerExist = await Owner.findOne({
-			address: req.body.address,
+		let ownerExist = await Owner.findOne({
+			address: assetData.address,
 			nft_id: nft._id,
 		});
-		if (ownerExist) {
-			ownerExist.value = (
-				parseInt(ownerExist.value) + parseInt(assetData.value)
-			).toString();
-			await ownerExist.save();
-		} else {
-			const newOwner = new Owner({ ...req.body, nft_id: nft._id });
-			await newOwner.save();
+		if (!ownerExist) {
+			ownerExist = new Owner({
+				token_id: assetData.token_id,
+				address: assetData.address,
+				chain_id: assetData.chain_id,
+				contract_address:assetData.contract_address,
+				nft_id: nft._id,
+				supply: 0,
+			});
 		}
-		currentOwner.value = (
-			parseInt(currentOwner.value) - parseInt(assetData.value)
-		).toString();
+		ownerExist.supply = ownerExist.supply + assetData.supply;
+		currentOwner.supply = currentOwner.supply - assetData.supply;
 		await currentOwner.save();
+		await ownerExist.save();
+		if (currentOwner.supply === 0) {
+			await currentOwner.delete();
+		}
 
-		await nft.save();
 		nft.value = assetData.value;
 		// Event Start
 		const event = new Event({
