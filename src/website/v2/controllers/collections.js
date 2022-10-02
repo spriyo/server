@@ -117,6 +117,8 @@ const getCollections = async (req, res) => {
 			{
 				$unwind: { path: "$contract", preserveNullAndEmptyArrays: true },
 			},
+			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
+			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
 		]);
 		res.send(collections);
 	} catch (error) {
