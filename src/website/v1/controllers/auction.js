@@ -19,10 +19,6 @@ const createAuction = async (req, res) => {
 
 		const nft = await NFT.findOne({ _id: auction.asset_id });
 		if (!nft) return res.status(404).send({ message: "Invalid nft id!" });
-		if (nft.owner.toLowerCase() !== req.user.address.toLowerCase())
-			return res
-				.status(401)
-				.send({ message: "only owner can create auction!" });
 
 		var expireAt = new Date();
 		expireAt.setDate(expireAt.getDate() + 1);

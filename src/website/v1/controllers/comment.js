@@ -1,5 +1,6 @@
 const Comment = require("../../../models/comment");
 const { NFT } = require("../../../models/nft");
+const { Owner } = require("../../../models/owner");
 const { User } = require("../../../models/user");
 const { createNotificationInter } = require("./notification");
 
@@ -16,20 +17,25 @@ createComment = async (req, res) => {
 		await comment.populate("userId");
 
 		// Create Notification
-		const currentNftOwner = await User.findOne({
-			address: nft.owner.toLowerCase(),
-		});
+		if (nft.type === "721") {
+			const owner = await Owner.findOne({
+				nft_id: nft._id,
+			});
+			const currentNftOwner = await User.findOne({
+				address: owner.address.toLowerCase(),
+			});
 
-		await createNotificationInter(
-			currentNftOwner._id,
-			"New Comment📝",
-			`${req.user.username} commented ${
-				comment.content.length > 40
-					? comment.content.slice(0, 40) + "..."
-					: comment.content
-			} on ${nft.name}`,
-			`/assets/${nft.contract_address}/${nft.token_id}`
-		);
+			await createNotificationInter(
+				currentNftOwner._id,
+				"New Comment📝",
+				`${req.user.username} commented ${
+					comment.content.length > 40
+						? comment.content.slice(0, 40) + "..."
+						: comment.content
+				} on ${nft.name}`,
+				`/assets/${nft.contract_address}/${nft.token_id}`
+			);
+		}
 
 		res.status(201).send(comment);
 	} catch (error) {
