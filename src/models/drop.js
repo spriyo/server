@@ -35,6 +35,12 @@ const DropSchema = new mongoose.Schema(
 		image: {
 			type: String,
 		},
+		metadata_url: {
+			type: String,
+		},
+		metadata: {
+			type: Object,
+		},
 	},
 	{ timestamps: true }
 );
