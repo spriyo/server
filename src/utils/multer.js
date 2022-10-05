@@ -115,10 +115,10 @@ const upload = {
 	}),
 	dropImage: multer({
 		limits: {
-			fileSize: 2000000,
+			fileSize: 20000000,
 		},
 		fileFilter(req, file, cb) {
-			if (!file.originalname.match(/\.(jpg|jpeg|png)$/)) {
+			if (!file.originalname.match(/\.(jpg|jpeg|png|mp4|gif)$/)) {
 				cb(new Error("please upload only jpg,jpeg or png file format images"));
 			}
 			cb(undefined, true);
