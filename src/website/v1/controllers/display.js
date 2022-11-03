@@ -157,7 +157,13 @@ const searchNfts = async (req, res) => {
 		let owner = req.query.owner;
 		let chain_id = req.query.chain_id;
 		let queryOptions = {
-			name: { $regex: query, $options: "i" },
+			$or: [
+				{ name: { $regex: query, $options: "i" } },
+				{ token_id: { $regex: query, $options: "i" } },
+				{ contract_address: { $regex: query, $options: "i" } },
+				{ metadata_url: { $regex: query, $options: "i" } },
+				{ description: { $regex: query, $options: "i" } },
+			],
 		};
 		if (chain_id) {
 			queryOptions.chain_id = chain_id;
