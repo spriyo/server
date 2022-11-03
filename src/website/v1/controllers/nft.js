@@ -333,7 +333,7 @@ const transferAsset = async (req, res) => {
 				token_id: assetData.token_id,
 				address: assetData.address,
 				chain_id: assetData.chain_id,
-				contract_address:assetData.contract_address,
+				contract_address: assetData.contract_address,
 				nft_id: nft._id,
 				supply: 0,
 			});
@@ -365,8 +365,18 @@ const transferAsset = async (req, res) => {
 	}
 };
 
+const getTotalNFTCount = async (req, res) => {
+	try {
+		const count = await NFT.count();
+		res.send({ count });
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
 module.exports = {
 	createAsset,
 	readAsset,
 	transferAsset,
+	getTotalNFTCount,
 };
