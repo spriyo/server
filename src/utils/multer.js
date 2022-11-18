@@ -119,7 +119,7 @@ const upload = {
 		},
 		fileFilter(req, file, cb) {
 			if (!file.originalname.match(/\.(jpg|jpeg|png|mp4|gif)$/)) {
-				cb(new Error("please upload only jpg,jpeg or png file format images"));
+				cb(new Error("please upload only jpg, jpeg, png, gif or mp4 file formats."));
 			}
 			cb(undefined, true);
 		},

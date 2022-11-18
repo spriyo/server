@@ -53,6 +53,22 @@ const readAsset = async (req, res) => {
 			},
 			{
 				$lookup: {
+					from: "contracts",
+					localField: "contract_address",
+					foreignField: "address",
+					as: "contract",
+				},
+			},
+			{
+				$lookup: {
+					from: "collections",
+					localField: "contract_address",
+					foreignField: "contract_address",
+					as: "collection",
+				},
+			},
+			{
+				$lookup: {
 					from: "events",
 					as: "events",
 					let: { asset_id: "$_id" },
@@ -148,6 +164,12 @@ const readAsset = async (req, res) => {
 			},
 			{
 				$unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
+			},
+			{
+				$unwind: { path: "$contract", preserveNullAndEmptyArrays: true },
+			},
+			{
+				$unwind: { path: "$collection", preserveNullAndEmptyArrays: true },
 			},
 		]);
 		if (nft.length === 0) {
