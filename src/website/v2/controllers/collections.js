@@ -3,9 +3,7 @@ const { Contract } = require("../../../models/contract");
 
 const createCollection = async (req, res) => {
 	try {
-		const contract = new Contract(req.body);
-		contract.creator = req.user.address;
-		await contract.save();
+		const contract = await Contract.findOne({ address: req.body.address });
 
 		const collection = new Collection(req.body);
 		collection.contract_address = contract.address;
@@ -17,6 +15,71 @@ const createCollection = async (req, res) => {
 
 		await collection.save();
 		res.status(201).send(collection);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+const updateCollection = async (req, res) => {
+	try {
+		const collection = await Collection.findOne({
+			$or: [
+				{ uname: req.params.collection_name },
+				{ contract_address: req.params.collection_name },
+			],
+		});
+
+		if (!collection)
+			return res
+				.status(404)
+				.send({ message: "No collection found with given data" });
+		const contract = await Contract.findOne({
+			address: new RegExp("^" + collection.contract_address + "$", "i"),
+		});
+
+		if (!contract)
+			return res
+				.status(404)
+				.send({ message: "No contract found for this collection" });
+
+		if (req.user.address.toLowerCase() !== contract.creator.toLowerCase())
+			return res
+				.status(401)
+				.send({ message: "Your not the owner of this collection" });
+
+		let updates = Object.keys(req.body);
+		const availableUpdates = ["name", "uname", "description", "socials"];
+		const isValid = updates.every((update) =>
+			availableUpdates.includes(update)
+		);
+		if (!isValid) {
+			return res.status(400).send({ message: "Invalid response received" });
+		}
+
+		updates.forEach((update) => {
+			if (update === "socials") {
+				req.body.socials.forEach((k) => {
+					const index = collection.socials.map((e) => e.type).indexOf(k.type);
+					if (index === -1) {
+						collection.socials.push(k);
+					} else {
+						collection.socials[index] = k;
+					}
+				});
+			} else {
+				collection[update] = req.body[update];
+			}
+		});
+
+		if (req.files.collectionimg) {
+			collection.image = req.files.collectionimg[0].location;
+		}
+		if (req.files.collectionbannerimg) {
+			collection.banner_image = req.files.collectionbannerimg[0].location;
+		}
+
+		await collection.save();
+		res.send(collection);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
 	}
@@ -126,4 +189,9 @@ const getCollections = async (req, res) => {
 	}
 };
 
-module.exports = { createCollection, getCollection, getCollections };
+module.exports = {
+	createCollection,
+	updateCollection,
+	getCollection,
+	getCollections,
+};
