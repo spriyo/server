@@ -4,6 +4,7 @@ const {
 	createCollection,
 	getCollection,
 	getCollections,
+	updateCollection,
 } = require("../controllers/collections");
 const { upload } = require("../../../utils/multer");
 
@@ -21,6 +22,25 @@ router.post(
 		},
 	]),
 	createCollection,
+	(err, req, res, next) => {
+		res.status(400).send({ error: err.message });
+	}
+);
+
+router.patch(
+	"/collections/:collection_name",
+	auth,
+	upload.collection.fields([
+		{
+			name: "collectionimg",
+			maxCount: 1,
+		},
+		{
+			name: "collectionbannerimg",
+			maxCount: 1,
+		},
+	]),
+	updateCollection,
 	(err, req, res, next) => {
 		res.status(400).send({ error: err.message });
 	}

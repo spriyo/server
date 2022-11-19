@@ -18,7 +18,7 @@ const getContract = async (req, res) => {
 					as: "collection",
 				},
 			},
-            {
+			{
 				$lookup: {
 					from: "users",
 					localField: "creator",
@@ -92,4 +92,34 @@ const getContract = async (req, res) => {
 	}
 };
 
-module.exports = { getContract };
+const getUserContracts = async (req, res) => {
+	try {
+		const contracts = await Contract.aggregate([
+			{
+				$match: {
+					$expr: {
+						$eq: ["$creator", req.user.address],
+					},
+				},
+			},
+			{
+				$lookup: {
+					from: "collections",
+					localField: "address",
+					foreignField: "contract_address",
+					as: "collection",
+				},
+			},
+			{ $sort: { createdAt: -1 } },
+			{
+				$unwind: { path: "$collection", preserveNullAndEmptyArrays: true },
+			},
+		]);
+
+		res.send(contracts);
+	} catch (error) {
+		res.status(500).send({ message: error.message });
+	}
+};
+
+module.exports = { getContract, getUserContracts };
