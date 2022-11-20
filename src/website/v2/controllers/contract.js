@@ -65,6 +65,11 @@ const getContract = async (req, res) => {
 							},
 						},
 						{
+							$group: {
+								_id: "$address",
+							},
+						},
+						{
 							$count: "count",
 						},
 					],
