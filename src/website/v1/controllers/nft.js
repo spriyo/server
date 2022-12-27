@@ -71,33 +71,15 @@ const readAsset = async (req, res) => {
 				$lookup: {
 					from: "events",
 					as: "events",
-					let: { asset_id: "$_id" },
+					let: { id: "$_id" },
 					pipeline: [
 						{
 							$match: {
-								$expr: { $eq: ["$asset_id", "$$asset_id"] },
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								as: "user_id",
-								let: { user_id: "$user_id" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$_id", "$$user_id"] },
-										},
-									},
-									{ $project: { tokens: 0 } },
-								],
+								$expr: { $eq: ["$nft_id", "$$id"] },
 							},
 						},
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 10 },
-						{
-							$unwind: { path: "$user_id" },
-						},
 					],
 				},
 			},

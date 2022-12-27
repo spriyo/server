@@ -1,37 +1,89 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
-const EventSchema = new mongoose.Schema(
+const EventsSchema = new mongoose.Schema(
 	{
-		asset_id: { type: mongoose.Types.ObjectId, required: true, ref: "NFT" },
-		contract_address: { type: String, required: true, trim: true },
-		item_id: { type: Number, required: true },
-		user_id: { type: mongoose.Types.ObjectId, required: true, ref: "User" },
-		event_type: {
+		method: {
 			type: String,
-			enum: [
-				"mint",
-				"bid",
-				"auction_create",
-				"auction_update_price",
-				"auction_canceled",
-				"auction_settled",
-				"offer_created",
-				"offer_accepted",
-				"offer_canceled",
-				"sale_created",
-				"sale_update_price",
-				"sale_accepted",
-				"sale_canceled",
-				"imported",
-				"transfer",
-			],
+			required: true,
+			trim: true,
+		},
+		// Change input to data
+		input: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		from: {
+			type: String,
+			required: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft owner address");
+				}
+			},
+		},
+		to: {
+			type: String,
+			required: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft owner address");
+				}
+			},
+		},
+		supply: {
+			type: Number,
+			required: true,
+			trim: true,
+			default: 1,
+		},
+		nft_id: {
+			type: mongoose.Types.ObjectId,
+			required: true,
+			ref: "Nft",
+		},
+		contract_address: {
+			type: String,
+			required: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft contract address");
+				}
+			},
+		},
+		token_id: {
+			type: String,
 			required: true,
 		},
-		data: { type: JSON },
+		chain_id: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		transaction_hash: {
+			type: String,
+			required: true,
+			trim: true,
+		},
+		// Removed required for log_id
+		log_id: {
+			type: mongoose.Types.ObjectId,
+			ref: "Log",
+		},
+		timestamp: {
+			type: Number,
+			required: true,
+		},
+		value: {
+			type: Number,
+			required: true,
+			default: 0,
+		},
 	},
 	{ timestamps: true }
 );
 
-const Event = new mongoose.model("Event", EventSchema);
+const Events = new mongoose.model("Events", EventsSchema);
 
-module.exports = { Event };
+module.exports = { Events };
