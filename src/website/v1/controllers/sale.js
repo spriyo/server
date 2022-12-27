@@ -34,7 +34,6 @@ const createSale = async (req, res) => {
 			transaction_hash: "0x0",
 			timestamp: Date.now(),
 			value: req.body.amount,
-			data: req.body
 		});
 		await event.save();
 		// Event End
@@ -47,39 +46,43 @@ const createSale = async (req, res) => {
 
 const cancelSale = async (req, res) => {
 	try {
-		const sale = await Sale.findOne({
-			_id: req.params.id,
-			status: "onsale",
-			sold: false,
-		});
-		if (!sale)
-			return res
-				.status(404)
-				.send({ message: "Invalid id or sale might have been canceled/sold." });
+		// const sale = await Sale.findOne({
+		// 	_id: req.params.id,
+		// 	status: "onsale",
+		// 	sold: false,
+		// });
+		// if (!sale)
+		// 	return res
+		// 		.status(404)
+		// 		.send({ message: "Invalid id or sale might have been canceled/sold." });
 
-		if (!sale.seller.equals(req.user._id))
-			return res
-				.status(401)
-				.send({ message: "Only seller can cancel the sale!" });
+		// if (!sale.seller.equals(req.user._id))
+		// 	return res
+		// 		.status(401)
+		// 		.send({ message: "Only seller can cancel the sale!" });
 
-		const nft = await NFT.findById(sale.asset_id);
-		sale.status = "canceled";
-		sale.sold = true;
-		await sale.save();
+		const nft = await NFT.findById(req.params.id);
+		// sale.status = "canceled";
+		// sale.sold = true;
+		// await sale.save();
 
 		// {}Event Start
-		const event = new Event({
-			asset_id: nft._id,
+		const event = new Events({
+			method: "Cancel",
+			input: "0x0",
+			from: req.user.address,
+			to: "0x0000000000000000000000000000000000000000",
+			nft_id: nft._id,
 			contract_address: nft.contract_address,
-			item_id: nft.token_id,
-			user_id: sale.seller,
-			event_type: "sale_canceled",
-			data: sale,
+			token_id: nft.token_id,
+			chain_id: "8081",
+			transaction_hash: "0x0",
+			timestamp: Date.now(),
 		});
 		await event.save();
 		// Event End
 
-		res.send(sale);
+		res.send(event);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
 	}
@@ -87,38 +90,43 @@ const cancelSale = async (req, res) => {
 
 const updateSale = async (req, res) => {
 	try {
-		const sale = await Sale.findOne({
-			_id: req.params.id,
-			status: "onsale",
-			sold: false,
-		});
-		if (!sale)
-			return res
-				.status(404)
-				.send({ message: "Invalid id or sale might have been canceled/sold." });
+		// const sale = await Sale.findOne({
+		// 	_id: req.params.id,
+		// 	status: "onsale",
+		// 	sold: false,
+		// });
+		// if (!sale)
+		// 	return res
+		// 		.status(404)
+		// 		.send({ message: "Invalid id or sale might have been canceled/sold." });
 
-		if (!sale.seller.equals(req.user._id))
-			return res
-				.status(401)
-				.send({ message: "Only seller can update the sale!" });
+		// if (!sale.seller.equals(req.user._id))
+		// 	return res
+		// 		.status(401)
+		// 		.send({ message: "Only seller can update the sale!" });
 
-		const nft = await NFT.findById(sale.asset_id);
-		sale.amount = req.body.amount;
-		await sale.save();
+		const nft = await NFT.findById(req.params.id);
+		// sale.amount = req.body.amount;
+		// await sale.save();
 
 		// {}Event Start
-		const event = new Event({
-			asset_id: nft._id,
+		const event = new Events({
+			method: "Update",
+			input: "0x0",
+			from: req.user.address,
+			to: "0x0000000000000000000000000000000000000000",
+			nft_id: nft._id,
 			contract_address: nft.contract_address,
-			item_id: nft.token_id,
-			user_id: sale.seller,
-			event_type: "sale_update_price",
-			data: sale,
+			token_id: nft.token_id,
+			chain_id: "8081",
+			transaction_hash: "0x0",
+			timestamp: Date.now(),
+			value: req.body.amount
 		});
 		await event.save();
 		// Event End
 
-		res.send(sale);
+		res.send(event);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
 	}
