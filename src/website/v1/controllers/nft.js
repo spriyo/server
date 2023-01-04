@@ -78,6 +78,17 @@ const readAsset = async (req, res) => {
 								$expr: { $eq: ["$nft_id", "$$id"] },
 							},
 						},
+						{
+							$lookup: {
+								from: "logs",
+								as: "log",
+								localField: "log_id",
+								foreignField: "_id",
+							},
+						},
+						{
+							$unwind: { path: "$log", preserveNullAndEmptyArrays: true },
+						},
 						{ $sort: { createdAt: -1 } },
 						{ $limit: 10 },
 					],
