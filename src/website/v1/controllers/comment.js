@@ -16,27 +16,6 @@ createComment = async (req, res) => {
 		await comment.save();
 		await comment.populate("userId");
 
-		// Create Notification
-		if (nft.type === "721") {
-			const owner = await Owner.findOne({
-				nft_id: nft._id,
-			});
-			const currentNftOwner = await User.findOne({
-				address: owner.address.toLowerCase(),
-			});
-
-			await createNotificationInter(
-				currentNftOwner._id,
-				"New Comment📝",
-				`${req.user.username} commented ${
-					comment.content.length > 40
-						? comment.content.slice(0, 40) + "..."
-						: comment.content
-				} on ${nft.name}`,
-				`/assets/${nft.contract_address}/${nft.token_id}`
-			);
-		}
-
 		res.status(201).send(comment);
 	} catch (error) {
 		res.status(500).send({ message: error.message });
