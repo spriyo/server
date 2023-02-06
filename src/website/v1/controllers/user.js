@@ -3,6 +3,7 @@ const { recoverPersonalSignature } = require("@metamask/eth-sig-util");
 const s3 = require("../../../utils/s3");
 const validator = require("validator");
 const { createNotificationInter } = require("./notification");
+const { Owner } = require("../../../models/owner");
 
 async function signin(req, res) {
 	try {
@@ -95,6 +96,11 @@ const getUserByAddressOrUsername = async function (req, res) {
 			user = await User.findOne({
 				address: { $regex: new RegExp("^" + username + "$", "i") },
 			});
+			if (!user) {
+				user = await Owner.findOne({
+					address: { $regex: new RegExp("^" + username + "$", "i") },
+				});
+			}
 		} else if (validator.isMongoId(username)) {
 			user = await User.findById(username);
 		} else {
