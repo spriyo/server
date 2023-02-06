@@ -6,7 +6,7 @@ const getActiveSales = async (req, res) => {
 	let assetOptions = {};
 	let chainId = req.query.chainId;
 	if (chainId) {
-		assetOptions.chain_id = chainId;
+		assetOptions.chain_id = parseInt(chainId);
 	}
 	try {
 		const sales = await Sale.aggregate([
@@ -166,7 +166,7 @@ const searchNfts = async (req, res) => {
 			],
 		};
 		if (chain_id) {
-			queryOptions.chain_id = chain_id;
+			queryOptions.chain_id = parseInt(chain_id);
 		}
 		let contract = req.query.contract;
 		if (contract) {
