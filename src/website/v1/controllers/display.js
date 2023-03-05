@@ -341,6 +341,7 @@ const searchNftsByStatus = async (req, res) => {
 			{
 				$match: {
 					...queryOptions,
+					$expr: { $eq: ["$_id", "$$nft_id"] },
 				},
 			},
 			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
@@ -457,7 +458,7 @@ const searchNftsByStatus = async (req, res) => {
 				assets = await Sale.aggregate([
 					{
 						$match: {
-							status: "cancel",
+							status: "create",
 						},
 					},
 					{
@@ -515,7 +516,7 @@ const searchNftsByStatus = async (req, res) => {
 		assets = assets.map((a) => {
 			let n = a.nft;
 			delete a.nft;
-			n[status] = a
+			n[status] = a;
 			return n;
 		});
 		res.send(assets);
