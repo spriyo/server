@@ -18,6 +18,7 @@ router.get("/users/nfts/:address", async (req, res) => {
 					...ownerQuery,
 				},
 			},
+			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
 			{
 				$lookup: {
 					from: "nfts",
@@ -31,7 +32,9 @@ router.get("/users/nfts/:address", async (req, res) => {
 						{
 							$match: {
 								$and: [
-									{ $expr: { $eq: ["$contract_address", "$$contract_address"] } },
+									{
+										$expr: { $eq: ["$contract_address", "$$contract_address"] },
+									},
 									{ $expr: { $eq: ["$token_id", "$$token_id"] } },
 									{ $expr: { $eq: ["$chain_id", "$$chain_id"] } },
 								],
@@ -40,7 +43,7 @@ router.get("/users/nfts/:address", async (req, res) => {
 					],
 				},
 			},
-            {
+			{
 				$unwind: { path: "$nft", preserveNullAndEmptyArrays: true },
 			},
 			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
