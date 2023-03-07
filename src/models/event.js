@@ -8,10 +8,16 @@ const EventsSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 		},
-		// Change input to data
 		input: {
+			// transaction input
 			type: String,
-			required: true,
+			default: "",
+			trim: true,
+		},
+		data: {
+			// log data
+			type: String,
+			default: "",
 			trim: true,
 		},
 		from: {
@@ -40,7 +46,6 @@ const EventsSchema = new mongoose.Schema(
 		},
 		nft_id: {
 			type: mongoose.Types.ObjectId,
-			required: true,
 			ref: "Nft",
 		},
 		contract_address: {
@@ -57,7 +62,7 @@ const EventsSchema = new mongoose.Schema(
 			required: true,
 		},
 		chain_id: {
-			type: String,
+			type: Number,
 			required: true,
 			trim: true,
 		},
@@ -66,7 +71,6 @@ const EventsSchema = new mongoose.Schema(
 			required: true,
 			trim: true,
 		},
-		// Removed required for log_id
 		log_id: {
 			type: mongoose.Types.ObjectId,
 			ref: "Log",
