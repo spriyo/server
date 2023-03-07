@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const validator = require("validator");
 
 const SaleSchema = new mongoose.Schema(
 	{
@@ -71,6 +72,6 @@ const SaleSchema = new mongoose.Schema(
 	{ timestamps: true }
 );
 
-const Sale = mongoose.model("Sale", SaleSchema);
+const Sale = new mongoose.model("Sale", SaleSchema);
 
 module.exports = { Sale };

@@ -4,36 +4,60 @@ const validator = require("validator");
 const AuctionSchema = new mongoose.Schema(
 	{
 		auction_id: {
-			type: Number,
+			type: String,
 			required: true,
 		},
-		asset_id: {
+		nft_id: {
 			type: mongoose.Types.ObjectId,
-			ref: "Asset",
+			ref: "NFT",
 			required: true,
 		},
-		item_id: {
-			type: Number,
+		token_id: {
+			type: String,
 			required: true,
+		},
+		contract_address: {
+			type: String,
+			required: true,
+			trim: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft contract address");
+				}
+			},
 		},
 		reserve_price: {
 			type: String,
 			required: true,
 			default: "0",
 		},
+		createdAt: {
+			type: Date,
+			required: true,
+		},
 		expireAt: {
 			type: Date,
 			required: true,
 		},
 		previous_bidder: {
-			type: mongoose.Types.ObjectId,
-			ref: "User",
-			default: null,
+			type: String,
+			required: true,
+			trim: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid address");
+				}
+			},
 		},
 		current_bidder: {
-			type: mongoose.Types.ObjectId,
-			ref: "User",
-			default: null,
+			type: String,
+			required: true,
+			trim: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid nft contract address");
+				}
+			},
 		},
 		seller: {
 			type: String,
@@ -45,10 +69,15 @@ const AuctionSchema = new mongoose.Schema(
 				}
 			},
 		},
-		contract_address: {
+		market_address: {
 			type: String,
 			required: true,
 			trim: true,
+			validate(value) {
+				if (!validator.isEthereumAddress(value.toString())) {
+					throw new Error("Invalid market contract address");
+				}
+			},
 		},
 		bids: [
 			{
@@ -56,15 +85,20 @@ const AuctionSchema = new mongoose.Schema(
 				ref: "Bid",
 			},
 		],
-		completed: {
+		sold: {
 			type: Boolean,
 			required: true,
 			default: false,
 		},
 		status: {
 			type: String,
-			enum: ["opened", "closed", "canceled"],
-			default: "opened",
+			enum: ["create", "update", "cancel", "settle"],
+			default: "create",
+		},
+		chain_id: {
+			type: Number,
+			required: true,
+			trim: true,
 		},
 	},
 	{

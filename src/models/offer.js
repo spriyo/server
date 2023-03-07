@@ -3,22 +3,26 @@ const validator = require("validator");
 
 const OfferSchema = new mongoose.Schema({
 	offer_id: {
-		type: Number,
+		type: String,
 		required: true,
 	},
-	asset_id: {
+	nft_id: {
 		type: mongoose.Types.ObjectId,
 		ref: "NFT",
 		required: true,
 	},
-	item_id: {
-		type: Number,
+	token_id: {
+		type: String,
 		required: true,
 	},
 	amount: {
 		type: String,
 		required: true,
 		trim: true,
+	},
+	createdAt: {
+		type: Date,
+		required: true,
 	},
 	expireAt: {
 		type: Date,
@@ -30,7 +34,7 @@ const OfferSchema = new mongoose.Schema({
 		trim: true,
 		validate(value) {
 			if (!validator.isEthereumAddress(value.toString())) {
-				throw new Error("Invalid nft contract address");
+				throw new Error("Invalid address");
 			}
 		},
 	},
@@ -38,18 +42,43 @@ const OfferSchema = new mongoose.Schema({
 		type: String,
 		required: true,
 		trim: true,
+		validate(value) {
+			if (!validator.isEthereumAddress(value.toString())) {
+				throw new Error("Invalid nft contract address");
+			}
+		},
 	},
-	offer_status: {
+	market_address: {
 		type: String,
-		enum: ["canceled", "accepted", "expired", "none"],
-		default: "none",
+		required: true,
+		trim: true,
+		validate(value) {
+			if (!validator.isEthereumAddress(value.toString())) {
+				throw new Error("Invalid market contract address");
+			}
+		},
+	},
+	status: {
+		type: String,
+		enum: ["create", "accept", "cancel"],
+		default: "created",
+		required: true,
 	},
 	sold: {
 		type: Boolean,
 		required: true,
 		default: false,
 	},
+	chain_id: {
+		type: Number,
+		required: true,
+		trim: true,
+	},
 });
+
+// Pre and Post Check
+// Checksum conversion
+// All address are converted to checksum address in previous steps before creating offer.
 
 const Offer = new mongoose.model("Offer", OfferSchema);
 
