@@ -2,45 +2,19 @@ const { Auction } = require("../../../models/auction");
 const { Contract } = require("../../../models/contract");
 const { NFT } = require("../../../models/nft");
 const { Sale } = require("../../../models/sale");
-const { mongo } = require("mongoose");
 
 const getStatistics = async function (req, res) {
 	try {
-		const nftCollectionLength = await Contract.aggregate([
-			{
-				$lookup: {
-					from: "nfts",
-					let: { address: "$address" },
-					pipeline: [
-						{
-							$match: {
-								$expr: { $eq: ["$contract_address", "$$address"] },
-							},
-						},
-						{
-							$limit: 1,
-						},
-					],
-					as: "nfts",
-				},
-			},
-			{
-				$project: {
-					_id: 1,
-					address: 1,
-					moreThanZero: { $gt: [{ $size: "$nfts" }, 0] },
-				},
-			},
-			{ $match: { moreThanZero: true } },
+		const nftCollectionLength = await NFT.aggregate([
 			{
 				$group: {
-					_id: "$address",
-					total_collections: { $count: {} },
+					_id: "$contract_address",
+					count: { $count: {} },
 				},
 			},
 			{
 				$count: "total_collections",
-			},
+			}
 		]);
 		const oneDayMints = await NFT.aggregate([
 			{
