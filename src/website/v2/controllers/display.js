@@ -104,7 +104,7 @@ const getStatistics = async function (req, res) {
 			{
 				$match: {
 					status: "settle",
-					createdAt: {
+					updatedAt: {
 						$gte: new Date(
 							new Date().getFullYear() +
 								"/" +
@@ -126,7 +126,7 @@ const getStatistics = async function (req, res) {
 			{
 				$match: {
 					status: "accept",
-					createdAt: {
+					updatedAt: {
 						$gte: new Date(
 							new Date().getFullYear() +
 								"/" +
