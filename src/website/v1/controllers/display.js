@@ -335,29 +335,11 @@ const searchNftsByStatus = async (req, res) => {
 					pipeline: [
 						{
 							$match: {
-								$expr: { $eq: ["$asset_id", "$$asset_id"] },
-							},
-						},
-						{
-							$lookup: {
-								from: "users",
-								as: "user_id",
-								let: { user_id: "$user_id" },
-								pipeline: [
-									{
-										$match: {
-											$expr: { $eq: ["$_id", "$$user_id"] },
-										},
-									},
-									{ $project: { tokens: 0 } },
-								],
+								$expr: { $eq: ["$nft_id", "$$asset_id"] },
 							},
 						},
 						{ $sort: { createdAt: -1 } },
-						{ $limit: 2 },
-						{
-							$unwind: { path: "$user_id" },
-						},
+						{ $limit: 1 },
 					],
 				},
 			},
