@@ -2,39 +2,7 @@ const { NFT } = require("../../../models/nft");
 const { User } = require("../../../models/user");
 const { Event } = require("../../../models/event");
 const { Owner } = require("../../../models/owner");
-
-const createAsset = async (req, res) => {
-	try {
-		// Check if medias were sent through request
-		if (!req.file) {
-			throw new Error("Invalid response received, no files received!");
-		}
-
-		const nft = new NFT(req.body);
-		nft.image = req.file.location;
-		const owner = new Owner(req.body);
-		owner.address = req.user.address;
-		owner.nft_id = nft._id;
-		await owner.save();
-		await nft.save();
-
-		// {}Event Start
-		const event = new Event({
-			asset_id: nft._id,
-			contract_address: nft.contract_address,
-			item_id: nft.token_id,
-			user_id: req.user._id,
-			event_type: "mint",
-			data: nft,
-		});
-		await event.save();
-		// Event End
-
-		res.status(201).send(nft);
-	} catch (error) {
-		res.status(500).send({ message: error.message });
-	}
-};
+const { utils } = require("web3");
 
 const readAsset = async (req, res) => {
 	try {
@@ -128,6 +96,53 @@ const readAsset = async (req, res) => {
 			},
 			{
 				$lookup: {
+					from: "owners",
+					as: "owners_data",
+					let: { id: "$_id" },
+					pipeline: [
+						{
+							$match: {
+								$expr: { $eq: ["$nft_id", "$$id"] },
+							},
+						},
+						{
+							$project: {
+								contract_address: "$contract_address",
+								user_supply: {
+									$cond: {
+										if: {
+											$eq: [
+												"$address",
+												req.user
+													? utils.toChecksumAddress(req.user.address)
+													: "",
+											],
+										},
+										then: "$supply",
+										else: 0,
+									},
+								},
+								total_supply: {
+									$sum: "$supply",
+								},
+								total_owners: {
+									$sum: 1,
+								},
+							},
+						},
+						{
+							$group: {
+								_id: "$contract_address",
+								user_supply: { $sum: "$user_supply" },
+								total_supply: { $sum: "$total_supply" },
+								total_owners: { $sum: "$total_owners" },
+							},
+						},
+					],
+				},
+			},
+			{
+				$lookup: {
 					from: "likes",
 					as: "likes",
 					let: { asset_id: "$_id" },
@@ -157,6 +172,9 @@ const readAsset = async (req, res) => {
 			},
 			{
 				$unwind: { path: "$owner", preserveNullAndEmptyArrays: true },
+			},
+			{
+				$unwind: { path: "$owners_data", preserveNullAndEmptyArrays: true },
 			},
 			{
 				$unwind: { path: "$contract", preserveNullAndEmptyArrays: true },
@@ -390,7 +408,6 @@ const getTotalNFTCount = async (req, res) => {
 };
 
 module.exports = {
-	createAsset,
 	readAsset,
 	transferAsset,
 	getTotalNFTCount,
