@@ -19,6 +19,25 @@ router.get("/users/nfts/:address", async (req, res) => {
 				},
 			},
 			{ $sort: { createdAt: req.query.createdAt === "asc" ? 1 : -1, _id: 1 } },
+			// Contract
+			{
+				$lookup: {
+					from: "contracts",
+					localField: "contract_address",
+					foreignField: "address",
+					as: "contract",
+				},
+			},
+			// Collection
+			{
+				$lookup: {
+					from: "collections",
+					localField: "contract_address",
+					foreignField: "contract_address",
+					as: "collection",
+				},
+			},
+			// NFT
 			{
 				$lookup: {
 					from: "nfts",
@@ -43,8 +62,42 @@ router.get("/users/nfts/:address", async (req, res) => {
 					],
 				},
 			},
+			// Last Sale
+			{
+				$lookup: {
+					from: "sales",
+					localField: "nft_id",
+					foreignField: "nft_id",
+					as: "sales",
+				},
+			},
+			// Last Auctions
+			{
+				$lookup: {
+					from: "auctions",
+					localField: "nft_id",
+					foreignField: "nft_id",
+					as: "auctions",
+				},
+			},
+			// Last Offers
+			{
+				$lookup: {
+					from: "offers",
+					localField: "nft_id",
+					foreignField: "nft_id",
+					as: "offers",
+				},
+			},
+			// Unwinds
 			{
 				$unwind: { path: "$nft", preserveNullAndEmptyArrays: true },
+			},
+			{
+				$unwind: { path: "$contract", preserveNullAndEmptyArrays: true },
+			},
+			{
+				$unwind: { path: "$collection", preserveNullAndEmptyArrays: true },
 			},
 			{ $skip: parseInt(!req.query.skip ? 0 : req.query.skip) },
 			{ $limit: parseInt(!req.query.limit ? 10 : req.query.limit) },
